@@ -1,0 +1,136 @@
+=head1 NAME
+
+GvaScript.protoExtensions - Extensions to prototype.js
+
+=head1 SYNOPSIS
+
+  Element.hasAnyClass(elem, ["class1", "class2", ...]);  
+  Element.getElementsByClassNames(elem, ["class1", "class2", ...]);  
+
+  var stop_condition = function(elem) { return elem.tagName == "SPAN"};
+  Element.navigateDom(elem, "nextSibling", ["class1", "class2", ...],
+                       stop_condition);
+
+  this.options = Class.checkOptions(defaultOptions, receivedOptions);
+
+
+=head1 DESCRIPTION
+
+Some extensions to the basic abstractions supplied by
+prototype.js.
+
+=head1 METHODS
+
+=head2 Element extensions
+
+=head3 hasAnyClass
+
+  if (Element.hasAnyClass(elem, ["class1", "class2", ...]) {...}  
+
+  if (Element.hasAnyClass(elem, "class1") {...}  
+
+Returns true if the supplied element has any of the given classes. 
+For convenience, also accepts a single string instead of an array
+when testing for a single class.
+
+=head3 getElementsByClassNames
+
+  var subElements 
+     = Element.getElementsByClassNames(rootElement, ["class1", "class2", ...]);
+
+Returns an array of children of C<rootElement> that have any
+of the given class names.
+
+=head3 navigateDom
+
+  var wantedClasses = ["class1", "class2", ...];
+  
+  // which direction to navigate (could be "parentNode", etc.)
+  var direction     = "nextSibling"; 
+
+  // some criteria for stopping navigation (can be anything, here a stupid
+  // example)
+  var stopCondition = function(elem) {return elem.innerHTML.length > 10}
+
+  var nextElement
+    = Element.navigateDom(startElement, direction, wantedClasses,
+                          stopCondition);
+
+
+Walks through the DOM in the given direction, until finding an
+element that has one of the given classnames, or finding a stop
+condition (in which case C<null> is returned).
+
+
+=head3 autoScroll
+
+  Element.autoScroll(elem, percentage) 
+
+Makes sure that C<elem> is visible in the central area of 
+its offset parent; if not, the parent is scrolled.
+C<percentage> is the ratio between the parent height and the 
+margin at which scrolling must occur, i.e. if 
+C<percentage = 20> (the default), then scrolling
+occurs if the element is in the higher than the top 20% or 
+lower than the bottom 20% of the viewport.
+
+
+=head2 Element extensions
+
+=head3 detailedStop
+
+  Event.detailedStop(event, toStop);
+
+Browser-independent method to control fine details of
+event stopping within event handlers. 
+The C<toStop> argument is an object
+which may contain the following properties:
+
+=over
+
+=item stopPropagation
+
+if true, the event will not be passed  to further
+handlers up the bubbling hierarchy.
+
+=item preventDefault
+
+if true, the default behaviour of the browser
+for that event will be cancelled
+
+=back
+
+=head3 stopAll
+
+Just a convenience object, having both properties
+above set to true. So 
+
+  Event.detailedStop(event, Event.stopAll);
+
+is equivalent to calling prototype's C<Event.stop(event)>.
+
+
+=head2 Class extensions
+
+=head3 checkOptions
+
+  this.options = Class.checkOptions(defaultOptions, ctorOptions)
+
+Utility for constructor methods. The first argument is an object
+containing a collection of default options (keys and values).
+The second argument is a similar object, containing options
+given to the constructor. 
+
+If one of the keys in C<ctorOptions> has no corresponding
+key in  C<defaultOptions>, an error is generated (because
+the constructor does not expect such a key). Otherwise,
+the concatenation of both objects is returned (i.e. values
+in C<ctorOptions> take precedence over values in 
+C<defaultOptions>).
+
+=head2 ASSERT
+
+  ASSERT (cond, msg);
+
+Checks if C<cond> is true, and if not, generates an error 
+with message C<msg>.

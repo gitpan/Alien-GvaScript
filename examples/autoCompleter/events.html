@@ -1,0 +1,92 @@
+<html>
+  <head>
+
+    <link href="../../lib/Alien/GvaScript/lib/GvaScript.css" rel="stylesheet" type="text/css">
+    <script src="../../lib/Alien/GvaScript/lib/prototype.js"></script>
+    <script src="../../lib/Alien/GvaScript/lib/GvaScript.js"></script>
+
+    <script>
+      var choices = [
+        {value    : "DEM",
+         txt_masc : "Demandeur",
+         txt_fem  : "Demanderesse",
+         label    : "DEM: Demandeur"},
+
+        {value    : "DEF",
+         txt_masc : "Défendeur",
+         txt_fem  : "Défenderesse",
+         label    : "DEF: Défendeur"},
+
+        {value    : "TEM",
+         txt_masc : "Témoin",
+         txt_fem  : "Témoin",
+         label : "TEM: Témoin"}
+      ];
+
+      var ac_role, ac2;
+
+      function setup() {  
+        ac_role = new GvaScript.AutoCompleter(choices, {
+         minimumChars : 0,
+         strict       : true,
+         ignorePrefix : true
+        });
+        ac2 = new GvaScript.AutoCompleter(
+          ["foo", "bar", "bie", "buz"], {
+            minimumChars : 0,
+            ignorePrefix : true
+         });
+      }
+
+
+      window.onload = setup;
+
+      function updateFromHighlight(event) {
+        var target = $('roleTxt');
+        var autocompleter = event.controller;
+        var property = $('C_CATEG_H').checked ? "txt_masc" : "txt_fem";
+        var txt = autocompleter.choices[event.index][property];
+        target.innerHTML = txt;
+      }
+
+      function doComplete(event) {
+        var target = $('roleTxt');
+        target.innerHTML += " COMPLETED";
+      }
+
+      function doComplete(event) {
+
+      }
+
+    </script>
+
+
+  </head>
+
+  <body>
+
+    <h1>Autocompleter events</h1>
+
+
+Sexe : <input type="radio" name="C_CATEG" value="H" checked id="C_CATEG_H">homme
+       <input type="radio" name="C_CATEG" value="F">femme
+<br>
+
+
+Rôle  : <input onfocus="ac_role.autocomplete(this)" size="3"
+                  style="border: 2px solid black"
+                  onHighlight="updateFromHighlight(event)"
+                  onBind="this.style.borderColor='red'"
+                  onLeave="this.style.borderColor='blue'"
+                  onComplete="doComplete">
+      <span id="roleTxt"></span>
+
+
+<p>
+Check "onComplete" : <input onfocus="ac2.autocomplete(this)" 
+                                onBind="$('completionState').innerHTML=''"
+                                onComplete="$('completionState').innerHTML='COMPLETE'" >
+      <span id="completionState"></span>    
+
+  </body>
+</html>

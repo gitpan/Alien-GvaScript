@@ -1,0 +1,77 @@
+<html>
+  <head>
+
+    <link href="../../lib/Alien/GvaScript/lib/GvaScript.css" rel="stylesheet" type="text/css">
+    <script src="../../lib/Alien/GvaScript/lib/prototype.js"></script>
+    <script src="../../lib/Alien/GvaScript/lib/GvaScript.js"></script>
+
+    <script>
+      var ac1, ac2;
+
+      function stupidChoices(prefix){
+          return [ {label: "this is the <b>" + prefix + "foo</b> entry",
+                    value: prefix + "foo"},
+                   {label: 'this is the <em>' + prefix + 'bar</em> entry',
+                    value: prefix + "bar"},
+                   {label: 'this is a <span style="font-size:400%">huge</span> entry',
+                    value: prefix + "huge"},
+
+                   {label: 'and many more',
+                    value: prefix + "many"},
+                   {label: 'and many more',
+                    value: prefix + "many"},
+                   {label: 'and many more',
+                    value: prefix + "many"},
+                   {label: 'and many more',
+                    value: prefix + "many"},
+                   {label: 'and many more',
+                    value: prefix + "many"},
+                   {label: 'and many more',
+                    value: prefix + "many"},
+                   {label: 'and many more',
+                    value: prefix + "many"},
+                   {label: 'and many more',
+                    value: prefix + "many"},
+                   {label: 'and many more',
+                    value: prefix + "many"},
+
+                   {label: 'and the last one',
+                    value: prefix + "last"}
+
+      ];
+
+      }
+
+      function setup() {  
+        ac1 = new GvaScript.AutoCompleter(stupidChoices, {
+         minimumChars: 2,
+         maxHeight:170
+        });
+        ac2 = new GvaScript.AutoCompleter(stupidChoices(""), {
+          minimumChars: 0,
+          autoSuggest: false
+        });
+      }
+
+
+      window.onload = setup;
+
+    </script>
+
+
+  </head>
+
+  <body>
+
+    <h1>Autocompleter basic test</h1>
+
+Input 1 : <input onfocus="ac1.autocomplete(this)">
+
+<p>
+
+Input 2 : <input  onfocus="ac2.autocomplete(this)">
+    
+
+
+  </body>
+</html>

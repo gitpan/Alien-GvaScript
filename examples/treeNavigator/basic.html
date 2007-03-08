@@ -1,0 +1,60 @@
+<html>
+  <head>
+
+    <link href="../../lib/Alien/GvaScript/lib/GvaScript.css" rel="stylesheet" type="text/css">
+
+    <script src="../../lib/Alien/GvaScript/lib/prototype.js"></script>
+    <script src="../../lib/Alien/GvaScript/lib/GvaScript.js"></script>
+    <script>
+      function setup() {  new GvaScript.TreeNavigator('TN_tree'); }
+      window.onload = setup;
+    </script>
+
+
+  </head>
+
+  <body>
+
+    <div id='TN_tree'>
+      <div class="TN_node">
+        <span class="TN_label">node 1</span> 
+        <div class="TN_content">normal content</div>
+      </div>
+ 
+     <div class="TN_node">
+        <span class="TN_label">node 2</span>
+        <div class="TN_content">
+
+          <div class="TN_node">
+            <span class="TN_label">subnode 2.1</span>
+            <div class="TN_content">other content</div>
+          </div>
+
+
+          <div class="TN_node TN_closed">
+            
+            <span class="TN_label">subnode 2.2 closed</span>
+            <div class="TN_content">
+              <div class="TN_node">
+                
+                <span class="TN_label">subnode 2.2.1</span>
+                <div class="TN_content"></div>
+              </div>
+
+              <div class="TN_node">
+                <span class="TN_label">subnode 2.2.2</span>
+                <div class="TN_content"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="TN_node TN_closed">
+        <span class="TN_label">node 3 closed</span> 
+        <div class="TN_content">still some content here</div>
+      </div>
+
+    </div>
+  </body>
+</html>

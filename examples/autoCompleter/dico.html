@@ -1,0 +1,85 @@
+<html>
+  <head>
+
+    <link href="../../lib/Alien/GvaScript/lib/GvaScript.css" rel="stylesheet" type="text/css">
+    <script src="../../lib/Alien/GvaScript/lib/prototype.js"></script>
+    <script src="../../lib/Alien/GvaScript/lib/GvaScript.js"></script>
+
+    <script>
+      var ac, ac_strict, ac_noblank;
+      var url = "http://localhost:8080/word/";
+
+      function setup() {  
+
+        ac = new GvaScript.AutoCompleter(url, {
+         minimumChars: 2,
+         maxHeight:170
+        });
+
+        ac_strict = new GvaScript.AutoCompleter(url, {
+         minimumChars : 2,
+         strict       : true
+        });
+
+        ac_noblank = new GvaScript.AutoCompleter(url, {
+         minimumChars : 2,
+         strict       : true,
+         blankOK      : false
+        });
+      }
+
+
+      window.onload = setup;
+
+    </script>
+
+
+  </head>
+
+  <body>
+
+    <h1>Autocompleter with dico</h1>
+
+<p>
+  This autocompleter example is bound to a dictionary
+      containing all french words starting with 'a' or 'b'.
+      Autocompletion is activated after 2 letters have been typed.
+</p>
+
+<p>
+<em>First start the server with <tt>perl dicoserver.pl</tt> in this
+   directory. 
+    Then go to page <a href="http://localhost:8080/examples/autoCompleter/dico.html">
+        http://localhost:8080/examples/autoCompleter/dico.html</a>
+</em>
+</p>
+
+
+Autocomplete 1 : <input onfocus="ac.autocomplete(this)">
+
+
+Normal : <input value="just a normal field">
+
+<p>
+
+Autocomplete 2 : <input  onfocus="ac.autocomplete(this)">
+      (same autocompleter object)
+    
+<p>
+
+
+Autocomplete 3 : <input  onfocus="ac_strict.autocomplete(this)">
+      (strict, blankOK)
+    
+<p>
+
+Autocomplete 4 : <input  onfocus="ac_noblank.autocomplete(this)">
+      (strict, no blank)
+    
+<p>
+
+
+<input type=submit value="placehoder for submit">
+
+  </body>
+</html>

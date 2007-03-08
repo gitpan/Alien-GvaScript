@@ -1,0 +1,108 @@
+<html>
+  <head>
+
+    <link href="../../lib/Alien/GvaScript/lib/GvaScript.css" rel="stylesheet" type="text/css">
+
+    <script src="../../lib/Alien/GvaScript/lib/prototype.js"></script>
+    <script src="../../lib/Alien/GvaScript/lib/GvaScript.js"></script>
+    <script>
+var treeNavigator;
+
+function lbl(node) {
+  var label = treeNavigator.label(node);
+  return label.innerHTML;
+}
+
+function log(msg)  {
+  var logger = $('logger');
+  logger.innerHTML += "<br>" + msg;
+  logger.scrollTop = logger.scrollHeight-logger.clientHeight;
+}
+
+function setup() {  
+  treeNavigator = new GvaScript.TreeNavigator('TN_tree', {selectDelay:800}); 
+  Object.extend(treeNavigator, {
+    onSelect:   function(event) {log(lbl(event.target) + ": select");},
+    onDeselect: function(event) {log(lbl(event.target) + ": deselect");},
+    onOpen:     function(event) {log(lbl(event.target) + ": open");},
+    onClose:    function(event) {log(lbl(event.target) + ": close");}
+   });
+  log("setup finished");
+}              
+
+window.onload = setup;
+
+
+function special_handler1(elem, msg) {
+  log("ad hoc handler for " + lbl(elem) + " : " + msg);
+}
+
+function special_handler2(event) {
+  log("ad hoc handler for " + lbl(event.target) + " : " + event.type);
+}
+
+    </script>
+
+
+  </head>
+
+  <body>
+
+    <div id="logger" style="height:100px; overflow:scroll">
+
+    </div>
+
+
+    <div id='TN_tree'
+           onopen="log(lbl(target) + ': overload open')">
+      <div class="TN_node">
+        <span class="TN_label">node 1</span> 
+        <div class="TN_content">normal content</div>
+      </div>
+ 
+     <div class="TN_node">
+        <span class="TN_label">node 2</span>
+        <div class="TN_content">
+
+          <div class="TN_node">
+            <span class="TN_label">subnode 2.1</span>
+            <div class="TN_content">other content</div>
+          </div>
+
+
+          <div class="TN_node TN_closed">
+            
+            <span class="TN_label">subnode 2.2 closed</span>
+            <div class="TN_content">
+              <div class="TN_leaf">
+                <span class="TN_label">subnode 2.2.1</span>
+              </div>
+              <div class="TN_leaf">
+                <span class="TN_label">subnode 2.2.2</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="ad_hoc_handlers"
+             class="TN_node TN_closed"
+             onselect="special_handler1(this,'special select')"
+             ondeselect="special_handler1(this,'special deselect')"
+             onopen="special_handler2"
+             onclose="special_handler2">
+        <span class="TN_label">node 3 closed</span> 
+        <div class="TN_content">still some content here</div>
+      </div>
+
+      <div class="TN_node TN_closed"
+          onBeforeLoadContent="log(lbl(target) + ': before loadContent')"
+          onAfterLoadContent="log(lbl(target) + ': after loadContent')"
+          contentUrl="dynamic_content/content1.html">
+        <span class="TN_label">node 4 with dynamic content</span> 
+      </div>
+    </div>
+
+
+  </body>
+</html>

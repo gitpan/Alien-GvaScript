@@ -1,0 +1,232 @@
+<html>
+<head>
+<style>
+#current_cell {background: blue}
+TD {width: 20}
+</style>
+
+
+<script src="../../lib/Alien/GvaScript/lib/prototype.js"></script>
+<script src="../../lib/Alien/GvaScript/lib/GvaScript.js"></script>
+
+
+
+<script>
+
+function Red() {
+  var cell = document.getElementById('current_cell');
+  cell.style.backgroundColor="red";
+}
+
+function Up() {
+  var cell = document.getElementById('current_cell');
+  var colIndex = cell.cellIndex;
+  var row = cell.parentNode;
+  if (row.rowIndex > 0) {
+    cell.id = null;
+    row.parentNode.rows[row.rowIndex - 1].cells[colIndex].id = "current_cell";
+  }
+}
+
+function Down() {
+  var cell = document.getElementById('current_cell');
+  var colIndex = cell.cellIndex;
+  var row = cell.parentNode;
+  if (row.rowIndex + 1 < row.parentNode.rows.length) {
+    cell.id = null;
+    row.parentNode.rows[row.rowIndex + 1].cells[colIndex].id = "current_cell";
+  }
+}
+
+function Left() {
+  var cell = document.getElementById('current_cell');
+  if (cell.cellIndex > 0) {
+    cell.id = null;
+    cell.parentNode.cells[cell.cellIndex - 1].id = "current_cell";
+  }
+}
+
+function Right() {
+  var cell = document.getElementById('current_cell');
+  if (cell.cellIndex + 1 < cell.parentNode.cells.length) {
+    cell.id = null;
+    cell.parentNode.cells[cell.cellIndex + 1].id = "current_cell";
+  }
+}
+
+function fill_cell_from_key(event) {
+  var cell = document.getElementById('current_cell');
+  cell.innerHTML = event.keyName; 
+}
+
+
+function say(msg) {
+  return function() { alert(msg)};
+}
+
+
+var keymap;
+
+function setup() {
+
+  
+
+  var C_X_map = {A: say('A'),
+                 B: say('B'),
+                 R: GvaScript.KeyMap.Prefix({K: say('Ctrl-X R K'),
+                                          O: say('Ctrl-X R O')})};
+
+
+  var rules   = {UP:     Up, 
+                 DOWN:   Down, 
+                 LEFT:   Left, 
+                 RIGHT:  Right, 
+                 RETURN: Red,
+                 27:     say('no escape from here'),
+
+                 C_X: GvaScript.KeyMap.Prefix(C_X_map),
+
+                 REGEX: [ ["",   /[0-9]/,             fill_cell_from_key],
+                          ["C_", /^[aeiou]$/i,        fill_cell_from_key],
+                          [null, "RETURN|TAB|ESCAPE", add_msg           ] ]};
+
+  keymap = new GvaScript.KeyMap(rules);
+
+  keymap.observe("keydown");
+
+
+  // keymap.observe("keydown", document.getElementById('table'));
+
+}
+
+
+
+function push_grab_all() {
+  keymap.rules.push(GvaScript.KeyMap.MapAllKeys(add_msg));
+}
+
+
+function push_ignore_all() {
+  keymap.rules.push(GvaScript.KeyMap.MapAllKeys(function () {}));
+}
+
+
+function push_navigate_divs() {
+  var cur_div = 3;
+
+  var tmp_rules = {
+    UP : function () {
+      if (cur_div > 1) {
+        document.getElementById("d" + cur_div).style.background = "";
+        cur_div -= 1;
+        document.getElementById("d" + cur_div).style.background = "yellow";
+      }
+    },
+    DOWN : function () {
+      if (cur_div < 4) {
+        document.getElementById("d" + cur_div).style.background = "";
+        cur_div += 1;
+        document.getElementById("d" + cur_div).style.background = "yellow";
+      }
+    },
+    REGEX: [[null, '.*', function () {}]]
+  }
+
+  keymap.rules.push(tmp_rules);
+}
+
+function pop() {
+  keymap.rules.pop();
+}
+
+
+
+function add_msg(event) {
+  var msg = event.keyModifiers + ":" + event.keyName;
+  $("msg").innerHTML += "Msg: " + msg + "<br>";
+  $("msg").scrollTop = 99999;
+}
+
+
+
+</script>
+</head>
+
+<body onload="setup()">
+
+<h1 id=title>Test Keymap</h1>
+
+
+<div id="d1">Use arrow keys to move the cursor in cells.</div>
+<div id="d2">Press RETURN to color a cell.</div>
+<div id="d3">Type digits or Ctrl-vowels to insert content in cells.</div>
+<div id="d4">Try combinations <tt>Ctrl-X A</tt>, <tt>Ctrl-X B</tt>, 
+     <tt>Ctrl-X R K</tt>, <tt>Ctrl-X R O</tt>.</div>
+
+<table border id="table">
+
+<tr>
+<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+</tr>
+
+<tr>
+<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+</tr>
+
+<tr>
+<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+</tr>
+
+<tr>
+<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+</tr>
+
+<tr>
+<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+<td id="current_cell">&nbsp;</td>
+<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+</tr>
+
+<tr>
+<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+</tr>
+
+<tr>
+<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+</tr>
+
+<tr>
+<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+</tr>
+
+<tr>
+<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+</tr>
+
+
+</table>
+
+Use buttons below to push new rules or pop to 
+previous rules.
+<br>
+
+<button onclick=push_grab_all()>Grab all</button>
+<button onclick=push_ignore_all()>Ignore all</button>
+<button onclick=push_navigate_divs()>Navigate divs</button>
+<button onclick=pop()>Pop</button>
+
+<div id="msg" style="height:100;overflow-y:scroll">
+</div>
+
+
+
+</body>
+</html>
