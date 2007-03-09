@@ -1,5 +1,8 @@
 Revision history for Alien-GvaScript
 
-0.01    ??
+1.01    09.03.2007
+  - removed t/boilerplate.t, useless at this stage and failed on linux
+
+1.00    08.03.2007
   - First public release
 

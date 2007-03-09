@@ -71,6 +71,5 @@ src/keyMap.js
 src/protoExtensions.js
 src/treeNavigator.js
 t/00-load.t
-t/boilerplate.t
 t/pod-coverage.t
 t/pod.t
