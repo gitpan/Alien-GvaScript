@@ -1,5 +1,8 @@
 Revision history for Alien-GvaScript
 
+1.02    17.03.2007
+  - bug fix, typo in examples/treeNavigator/frames/toc.html
+
 1.01    09.03.2007
   - removed t/boilerplate.t, useless at this stage and failed on linux
 
