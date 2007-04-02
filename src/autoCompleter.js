@@ -1,7 +1,6 @@
 /** 
 TODO: 
   - if ignorePrefix, should highlight current value (not the 1st one)
-  - ctor option: caseSensitive
   - BUG: if strict && noBlank && Ajax server down, MSIE takes 100% CPU
   - messages : choose language
   - 'actions' are not documented because the design needs rethinking
@@ -26,10 +25,17 @@ GvaScript.AutoCompleter = function(datasource, options) {
     offsetX          : 0,         // pixels
     strict           : false,     // will not force to take value from choices
     blankOK          : true,
-    ignorePrefix     : false,     // will always display the full choice list
     colorIllegal     : "red",
     actionItems      : null       // choice items to invoke javascript method
   };
+
+  // more options for array datasources
+  if (typeof datasource == "object" && datasource instanceof Array) { 
+    defaultOptions.ignorePrefix  = false;  // will always display the full list
+    defaultOptions.caseSensitive = true;
+  }
+
+
 
   this.options = Class.checkOptions(defaultOptions, options);
 
@@ -160,14 +166,15 @@ GvaScript.AutoCompleter.prototype = {
         if (this.options.ignorePrefix)
           this.choices = datasource;
         else {
-          var prefix = this.inputElement.value;
-          var isPrefixed = function(choice) {
+          var regex = new RegExp("^" + this.inputElement.value,
+                                 this.options.caseSensitive ? "" : "i");
+          var matchPrefix = function(choice) {
             var value = 
-            (typeof choice == "string") ? choice 
-            : choice[this.options.valueField];
-            return value.indexOf(prefix) == 0;
+              (typeof choice == "string") ? choice 
+                                          : choice[this.options.valueField];
+            return value.search(regex) > -1;
           };
-          this.choices = datasource.select(isPrefixed.bind(this));
+          this.choices = datasource.select(matchPrefix.bind(this));
         }
         return false; // not asynchronous
       };

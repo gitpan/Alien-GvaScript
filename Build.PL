@@ -8,13 +8,16 @@ my $builder = GvaScript_Builder->new(
     dist_author         => 'Laurent Dami <laurent.dami@justice.ge.ch>',
     dist_version_from   => 'lib/Alien/GvaScript.pm',
     requires            => {
+      'File::Copy' => 0,
+      'File::Path' => 0,
      },
     recommends => {
-      'Pod::POM'       => 0,
-      'Pod::POM::View' => 0,
+      'Pod::POM'             => 0,
+      'Pod::POM::View'       => 0,
+      'Pod::POM::View::HTML' => 0,
      },
     build_requires => {
-        'Test::More' => 0,
+      'Test::More'           => 0,
     },
     add_to_cleanup      => [ 'Alien-GvaScript-*' ],
 );

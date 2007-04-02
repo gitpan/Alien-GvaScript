@@ -217,7 +217,7 @@ as single argument.</p>
 <p>The array is taken as in-memory datasource. The returned suggestion
 list is either the complete array (when <code>options.ignorePrefix</code> is true)
 or just the list of items that are prefixed by the current value 
-of the field. </p>
+of the field. See also <code>options.caseSensitive</code>.</p>
 </li>
 </ul>
 
@@ -274,43 +274,57 @@ when available (true by default). If false, suggestions are only
 displayed when the <code>ARROW_DOWN</code> key is pressed.</p>
 </li>
 <li><a name="item_autoSuggestDelay"></a><b>autoSuggestDelay</b>
-<p>How many milliseconds to wait after a keypress before displaying suggestions.</p>
+<p>How many milliseconds to wait after a keypress before displaying 
+suggestions. Default is 200.</p>
 </li>
 <li><a name="item_typeAhead"></a><b>typeAhead</b>
-<p>If true, the current suggestion will be automatically inserted
-into the input element.</p>
+<p>If true (the default), the current suggestion will be automatically 
+inserted into the input element.</p>
 </li>
 <li><a name="item_maxHeight"></a><b>maxHeight</b>
-<p>Maximum height for the suggestion DIV (in pixels)</p>
+<p>Maximum height for the suggestion DIV (in pixels).
+Default is 200.</p>
 </li>
 <li><a name="item_minWidth"></a><b>minWidth</b>
-<p>Minimum width for the suggestion DIV (in pixels)</p>
+<p>Minimum width for the suggestion DIV (in pixels)
+Default is 200.</p>
 </li>
 <li><a name="item_offsetX"></a><b>offsetX</b>
 <p>Offset (in pixels) from the left border of the 
 input element to the left border of the 
-suggestion DIV.</p>
+suggestion DIV.
+Default is 0.</p>
 </li>
 <li><a name="item_strict"></a><b>strict</b>
 <p>If this option is true and the user 
 leaves the field with an illegal value
 (not in the suggestion list), 
-the field is marked with a red background.</p>
+the field is marked with a red background.
+Dfault is false.</p>
 </li>
 <li><a name="item_blankOK"></a><b>blankOK</b>
 <p>If this option is defined and false, 
 the field is marked with a red background
-when left with an empty value.</p>
+when left with an empty value.
+Default is true.</p>
 </li>
 <li><a name="item_ignorePrefix"></a><b>ignorePrefix</b>
 <p>If true, and if the datasource is a Javascript array, then
 that whole array is always displayed as suggestions, 
 whatever may be typed in the input field (so the field
-behaves more or less like a SELECT).</p>
+behaves more or less like a SELECT).
+Default is false.</p>
+</li>
+<li><a name="item_caseSensitive"></a><b>caseSensitive</b>
+<p>This option only applies if the datasource is a Javascript array
+and if <code>ignorePrefix</code> is false.
+If true (the default), filtering of the datasource array 
+from the current value of the input field
+will be case-sensitive.</p>
 </li>
 <li><a name="item_colorIllegal"></a><b>colorIllegal</b>
-<p>Which color to put in the background when a "strict" field contains an illegal value
-(default is red)</p>
+<p>Which color to put in the background when a "strict" field contains 
+an illegal value (default is red).</p>
 </li>
 </ul>
 

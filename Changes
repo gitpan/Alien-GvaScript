@@ -1,5 +1,9 @@
 Revision history for Alien-GvaScript
 
+1.03    01.04.2007
+  - added options caseSensitive in autoCompleter
+  - fixed bug in Builder.pm (dependendy on Pod:POM::View::HTML)
+
 1.02    17.03.2007
   - bug fix, typo in examples/treeNavigator/frames/toc.html
 

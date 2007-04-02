@@ -65,6 +65,7 @@ sub generate_html {# regenerate html doc from pod sources
   my ($self) = @_;
 
   require Pod::POM;
+  require Pod::POM::View::HTML;
 
   my @podfiles = glob ("lib/Alien/GvaScript/*.pod");
   my $parser = new Pod::POM;
@@ -89,10 +90,8 @@ package Pod::POM::View::HTML::GvaScript;
 #======================================================================
 use strict;
 use warnings;
-require Pod::POM::View::HTML;
 
-our @ISA = qw/Pod::POM::View::HTML/;
-
+use base 'Pod::POM::View::HTML';
 
 sub _title_to_id {
   my $title = shift;

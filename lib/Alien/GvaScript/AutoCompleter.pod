@@ -106,7 +106,7 @@ as single argument.
 The array is taken as in-memory datasource. The returned suggestion
 list is either the complete array (when C<options.ignorePrefix> is true)
 or just the list of items that are prefixed by the current value 
-of the field. 
+of the field. See also C<options.caseSensitive>.
 
 =back
 
@@ -169,26 +169,30 @@ displayed when the C<ARROW_DOWN> key is pressed.
 
 =item autoSuggestDelay
 
-How many milliseconds to wait after a keypress before displaying suggestions.
+How many milliseconds to wait after a keypress before displaying 
+suggestions. Default is 200.
 
 =item typeAhead
 
-If true, the current suggestion will be automatically inserted
-into the input element.
+If true (the default), the current suggestion will be automatically 
+inserted into the input element.
 
 =item maxHeight
 
-Maximum height for the suggestion DIV (in pixels)
+Maximum height for the suggestion DIV (in pixels).
+Default is 200.
 
 =item minWidth
 
 Minimum width for the suggestion DIV (in pixels)
+Default is 200.
 
 =item offsetX
 
 Offset (in pixels) from the left border of the 
 input element to the left border of the 
 suggestion DIV.
+Default is 0.
 
 =item strict
 
@@ -196,12 +200,14 @@ If this option is true and the user
 leaves the field with an illegal value
 (not in the suggestion list), 
 the field is marked with a red background.
+Dfault is false.
 
 =item blankOK
 
 If this option is defined and false, 
 the field is marked with a red background
 when left with an empty value.
+Default is true.
 
 =item ignorePrefix
 
@@ -209,11 +215,20 @@ If true, and if the datasource is a Javascript array, then
 that whole array is always displayed as suggestions, 
 whatever may be typed in the input field (so the field
 behaves more or less like a SELECT).
+Default is false.
+
+=item caseSensitive
+
+This option only applies if the datasource is a Javascript array
+and if C<ignorePrefix> is false.
+If true (the default), filtering of the datasource array 
+from the current value of the input field
+will be case-sensitive.
 
 =item colorIllegal
 
-Which color to put in the background when a "strict" field contains an illegal value
-(default is red)
+Which color to put in the background when a "strict" field contains 
+an illegal value (default is red).
 
 =back
 
