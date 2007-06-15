@@ -1,8 +1,3 @@
-/* Keymap handler, v0.1, Sept 2006, by laurent.dami AT justice.ge.ch.
-   See companion file "Keymap.pod" for documentation and license.
-*/
-
-// TODO : add a notion of "AntiRegex"
 
 //constructor
 GvaScript.KeyMap = function (rules) {
@@ -60,7 +55,6 @@ GvaScript.KeyMap.prototype = {
 
 
   _findInStack: function(event, stack) {
-
     for (var i = stack.length - 1; i >= 0; i--) {
       var rules = stack[i];
 
@@ -68,28 +62,33 @@ GvaScript.KeyMap.prototype = {
       var keyCode = event.keyCode>9 ? event.keyCode : ("0"+event.keyCode);
 
       var handler = rules[event.keyModifiers + event.keyName]
-                 || rules[event.keyModifiers + keyCode];
+                 || rules[event.keyModifiers + keyCode]
+                 || this._regex_handler(event, rules.REGEX, true)
+                 || this._regex_handler(event, rules.ANTIREGEX, false);
       if (handler) 
-	return handler;
+        return handler;
+    }
+    return null;
+  },
 
-      if (!rules.REGEX) 
-	continue;
+  _regex_handler: function(event, regex_rules, want_match) {
+    if (!regex_rules) return null;
+    for (var j = 0; j < regex_rules.length; j++) {
+      var rule      = regex_rules[j];
+      var modifiers = rule[0];
+      var regex     = rule[1];
+      var handler   = rule[2];
 
-      for (var j = 0; j < rules.REGEX.length; j++) {
-	var rule = rules.REGEX[j];
-        var modifiers = rule[0];
-        var regex     = rule[1];
-        var handler   = rule[2];
+      var same_modifiers = modifiers == null 
+                        || modifiers == event.keyModifiers;
 
-        // build regex if it was passed as a string
-	if (typeof(regex) == "string") 
-            regex = new RegExp("^(" + regex + ")$");
+      // build regex if it was passed as a string
+      if (typeof(regex) == "string") 
+        regex = new RegExp("^(" + regex + ")$");
 
-        var same_modifiers = modifiers == null 
-                          || modifiers == event.keyModifiers;
-	if (same_modifiers && regex.test(event.keyName))
-            return handler;
-      }
+      var match = same_modifiers && regex.test(event.keyName);
+      if ((match && want_match) || (!match && !want_match)) 
+        return handler;
     }
     return null;
   },
@@ -166,7 +165,7 @@ GvaScript.KeyMap.Prefix = function(rules) {
 
     // ... and push that handler on top of the current rules
     return function(event) {
-        this.rules.push(KeyMap.MapAllKeys(one_time_handler));
+        this.rules.push(GvaScript.KeyMap.MapAllKeys(one_time_handler));
     }
 };
 

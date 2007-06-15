@@ -167,6 +167,9 @@ to an element.
   var myKeyMap = new KeyMap(rules);
 
 Constructor for a keymap object. 
+
+=head3 Single-key rules
+
 The rules argument is a map from key specifications to handlers, like
 for example 
 
@@ -179,6 +182,8 @@ for example
 Each key specification in the map corresponds to exacly one key
 combination, so for example C<S_TAB> will not fire if the user pressed
 C<Ctrl-Shift-Tab>.  
+
+=head3 Regex rules
 
 For situations where several key combination will
 fire the same handler, you can insert a C<REGEX> entry in the map.
@@ -222,6 +227,17 @@ is probably not the intended meaning of the rule).
 The function to be called when the rule succeeds.
 
 =back
+
+
+=head3 Antiregex rules
+
+An C<ANTIREGEX> entry in the map
+works exactly like a C<REGEX>, except that
+the handler is called when the regex does
+B<not> match. This is useful if you want to 
+catch most key events, except 
+a given set.
+
 
 
 =head2 C<eventHandler>

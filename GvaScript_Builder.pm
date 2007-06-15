@@ -227,3 +227,53 @@ __EOHTML__
 1;
 
 
+__END__
+
+
+
+=head1 NAME
+
+GvaScript_Builder - Module::Build subclass for GvaScript
+
+
+=head1 SYNOPSIS
+
+  perl Build.PL
+  perl Build
+  # etc.
+
+=head1 DESCRIPTION
+
+This subclass of L<Module::Build> assembles various chunks 
+of javascript (in src/*.js) into a single distribution file,
+and compiles the HTML documentation from Pod modules.
+
+=head1 METHODS
+
+=over
+
+=item ACTION_build
+
+build the package
+
+=item ACTION_distdir
+
+build the CPAN distribution
+
+=item generate_from_sources
+
+generate js and html files
+
+=item generate_js
+
+assemble files in F<src/*.js> into a single file F<GvaScript.js>.
+
+=item generate_html
+
+generate html documentation from pod sources
+
+
+=back
+
+
+

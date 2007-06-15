@@ -230,6 +230,12 @@ will be case-sensitive.
 Which color to put in the background when a "strict" field contains 
 an illegal value (default is red).
 
+=item scrollCount
+
+How many items to skip when hitting the 
+C<PAGE_UP> or C<PAGE_DOWN> keys. 
+Default is 5
+
 =back
 
 =head1 METHODS

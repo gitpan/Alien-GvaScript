@@ -76,6 +76,13 @@ will have ids C<CL_choice.0>, C<CL_choice.1>, etc.
 If defined, the choiceList will add rules to the supplied keymap,
 instead of creating a new one.
 
+=item scrollCount
+
+How many items to skip when hitting the 
+C<PAGE_UP> or C<PAGE_DOWN> keys. 
+Default is 5
+
+
 =item classes
 
 Classes that will be assigned to choice elements in the generated

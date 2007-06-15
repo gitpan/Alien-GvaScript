@@ -5,6 +5,7 @@
   background-color:#ecf2ff;
   border: 1px solid #183E6C;
   padding: 3px;
+  padding-right: 25px; /* so that scrollbars don't hide the content */
   color: #183E6C;
   overflow-y: auto; 
 }
@@ -84,6 +85,7 @@
 /* leaf nodes have a single icon 'dot' */
 .TN_leaf .TN_button { 
   background-image: url(dot.gif);
+  cursor: default;
 }
 
 /* showall : the content of closed nodes is nevertheless visible 

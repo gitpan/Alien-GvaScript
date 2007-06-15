@@ -142,7 +142,7 @@ function pop() {
 
 
 function add_msg(event) {
-  var msg = event.keyModifiers + ":" + event.keyName;
+  var msg = event.keyModifiers + ":" + event.keyName + " / " +  event.keyCode;
   $("msg").innerHTML += "Msg: " + msg + "<br>";
   $("msg").scrollTop = 99999;
 }

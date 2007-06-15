@@ -59,7 +59,11 @@ Object.extend(Element, {
          parent = parent.parentNode;
        }
        parent  = parent || document.body;
-       offset -= parent.offsetTop
+       
+       //offset -= parent.offsetTop
+       // commented out Jean-Christophe 18.4.07 
+       // solves a bug with autoCompleters, but new bug with choiceList ..
+       // .. TODO: need to investigate further how firefox handles offsets.
      }
 
      var min = offset - (parent.clientHeight * (100-percentage)/100);

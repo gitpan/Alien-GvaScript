@@ -4,6 +4,7 @@ examples/autoCompleter/basic.html
 examples/autoCompleter/dico.html
 examples/autoCompleter/dicoserver.pl
 examples/autoCompleter/events.html
+examples/autoCompleter/options.html
 examples/keyMap/basic.html
 examples/treeNavigator/basic.html
 examples/treeNavigator/dropdownMenu.html

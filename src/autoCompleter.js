@@ -1,6 +1,12 @@
 /** 
 TODO: 
   - if ignorePrefix, should highlight current value (not the 1st one)
+      a) change in _updateChoicesFunction (because there might be an
+         initial value in the form)
+      b) what happens if value set programmatically ?
+      c) in _checkNewValue : do not destroy the choiceList; just update
+         the element
+
   - BUG: if strict && noBlank && Ajax server down, MSIE takes 100% CPU
   - messages : choose language
   - 'actions' are not documented because the design needs rethinking
@@ -26,6 +32,7 @@ GvaScript.AutoCompleter = function(datasource, options) {
     strict           : false,     // will not force to take value from choices
     blankOK          : true,
     colorIllegal     : "red",
+    scrollCount      : 5,
     actionItems      : null       // choice items to invoke javascript method
   };
 
@@ -34,8 +41,6 @@ GvaScript.AutoCompleter = function(datasource, options) {
     defaultOptions.ignorePrefix  = false;  // will always display the full list
     defaultOptions.caseSensitive = true;
   }
-
-
 
   this.options = Class.checkOptions(defaultOptions, options);
 
@@ -56,7 +61,10 @@ GvaScript.AutoCompleter = function(datasource, options) {
   // focus() event; then a second set of keymap rules is pushed/popped
   // whenever the choice list is visible
   var basicHandler = this._keyPressHandler.bindAsEventListener(this);
-  var basicMap     = GvaScript.KeyMap.MapAllKeys(basicHandler);
+  var detectedKeys = /^(BACKSPACE|DELETE|.)$/;
+                   // catch any single char, plus some editing keys
+  var basicMap     = { DOWN: this._keyDownHandler.bindAsEventListener(this),
+                       REGEX: [[null, detectedKeys, basicHandler]] };
   this.keymap = new GvaScript.KeyMap(basicMap);
 
   // prepare some stuff to be reused when binding to inputElements
@@ -116,6 +124,13 @@ GvaScript.AutoCompleter.prototype = {
     Element.addClassName(div, this.classes.message);
   },
 
+  //
+  // TODO: TO BE REMOVED OR COMMITED TO ALIEN PACKAGE
+  //
+  setdatasource : function(datasource) {
+    this.updateChoices = this._updateChoicesFunction(datasource);
+  },
+
   fireEvent: GvaScript.fireEvent, // must be copied here for binding "this" 
 
 
@@ -142,7 +157,7 @@ GvaScript.AutoCompleter.prototype = {
            },
            onFailure: function(xhr) {
               autocompleter._runningAjax = null;
-              autocompleter.displayMessage("Ajax request failed");
+              autocompleter.displayMessage("pas de réponse du serveur");
            },
            onComplete: function(xhr) {
               Element.removeClassName(autocompleter.inputElement, 
@@ -169,9 +184,13 @@ GvaScript.AutoCompleter.prototype = {
           var regex = new RegExp("^" + this.inputElement.value,
                                  this.options.caseSensitive ? "" : "i");
           var matchPrefix = function(choice) {
-            var value = 
-              (typeof choice == "string") ? choice 
-                                          : choice[this.options.valueField];
+	    var value;
+	    switch(typeof choice) {
+	      case "object" : value = choice[this.options.valueField]; break;
+	      case "number" : value = choice.toString(10); break;
+	      case "string" : value = choice; break;
+	      default: throw new Error("unexpected type of value");
+            }
             return value.search(regex) > -1;
           };
           this.choices = datasource.select(matchPrefix.bind(this));
@@ -202,17 +221,56 @@ GvaScript.AutoCompleter.prototype = {
       }
     }
     if (this.options.strict) {
-      var valueOK = false;
+
+      // initially : not OK unless options.blankOK and value is empty
+      var valueOK = this.options.blankOK && this.inputElement.value == "";
+
+      // if choices are known : check if we have one of them
       if (this.choiceList) {
         var index = this.choiceList.currentHighlightedIndex;
         var legal = this._valueFromChoice(index);
-        if (legal == null && this.options.blankOK)
-          legal = "";
         valueOK = this.inputElement.value == legal;
       }
+
+      // else update choices and then check
+      else { 
+        var async = this.updateChoices(); 
+
+        // can only check if in synchronous mode
+        if (!async) {
+
+          // if got one single choice, take the canonic form of that one
+          if (this.choices.length == 1) { 
+            this.inputElement.value 
+              = this.lastValue
+              = this._valueFromChoice(0); // canonic form
+            this.fireEvent({type: "Complete", index: 0}, this.inputElement); 
+            valueOK = true;
+          }
+
+          // if got many choices and our input is "", check if it belongs there
+          else {
+            //if ( this.inputElement.value == "" && this.choices.length > 1 ) {
+            if ( this.inputElement.value && this.choices.length > 1 ) {
+              for (var i = 0; i < this.choices.length; i++) {
+                //if length of one element of choicelist is same as length of input.value
+                //then they are identical (here no need to check caseSensitive since it is
+                //being done when generating choiceList
+                if (this._valueFromChoice(i).length == this.inputElement.value.length) {
+                  this.inputElement.value 
+                      = this.lastValue
+                      = this._valueFromChoice(i); // canonic form
+                  this.fireEvent({type: "Complete", index: i}, this.inputElement); 
+                  valueOK = true;
+                  break;
+                }
+              }
+            }
+          }
+        }
+      }
+
       if (!valueOK) {
-        // this.displayMessage("not a legal value"); 
-        // this.inputElement.select(); 
         this.inputElement.style.backgroundColor = this.options.colorIllegal;
       }
     }
@@ -221,34 +279,32 @@ GvaScript.AutoCompleter.prototype = {
     this.inputElement = null;
   },
 
+  _keyDownHandler: function(event) { 
+    var valueLength = (this.inputElement.value || "").length; 
+    if (valueLength < this.options.minimumChars)
+      this.displayMessage("liste de choix à partir de " 
+                            + this.options.minimumChars + " caractères");
+    else 
+      this._displayChoices();
+    Event.stop(event);
+  },
 
   _keyPressHandler: function(event) { 
 
     // after a blur, we still get a keypress, so ignore it
     if (!this.inputElement) return; 
+    
+    // first give back control so that the inputElement updates itself,
+    // then come back through a timeout to update the Autocompleter
 
-    if (event.keyName == "DOWN") { // user wants the list now ==> no timeout
-      if (!this.inputElement.value || (this.inputElement.value.length < this.options.minimumChars))
-        this.displayMessage("liste de choix à partir de " 
-                            + this.options.minimumChars + " caractères");
-      else 
-        this._displayChoices();
-      Event.stop(event);
-    }
-    else if (! /^(SHIFT|CTRL|ALT|LEFT|RIGHT)$/.test(event.keyName)) {
-      // first give back control so that the inputElement updates itself,
-      // then come back through a timeout to update the Autocompleter
+    // cancel pending timeouts because we create a new one
+    if (this._timeoutId) clearTimeout(this._timeoutId);
 
-      // cancel pending timeouts because we create a new one
-      if (this._timeoutId) clearTimeout(this._timeoutId);
-
-      this._timeLastKeyPress = (new Date()).getTime(); 
-      this._timeoutId = setTimeout(this._checkNewValue.bind(this), 
-                                   this.options.autoSuggestDelay);
-      // do NOT stop the event here .. inputElement needs to get the event
-    }
+    this._timeLastKeyPress = (new Date()).getTime(); 
+    this._timeoutId = setTimeout(this._checkNewValue.bind(this), 
+                                 this.options.autoSuggestDelay);
+    // do NOT stop the event here .. inputElement needs to get the event
   },
-
 
 
   _checkNewValue: function() { 
@@ -319,6 +375,7 @@ GvaScript.AutoCompleter.prototype = {
     div.style.top       = coords[1] + dim.height + "px";
     div.style.maxHeight = this.options.maxHeight + "px";
     div.style.minWidth  = this.options.minWidth + "px";
+    div.style.zIndex    = 32767; //Seems to be the highest valide value
 
     // insert into DOM
     document.body.appendChild(div);
@@ -354,8 +411,16 @@ GvaScript.AutoCompleter.prototype = {
     if (this.choices.length > 0) {
       var ac = this;
       var cl = this.choiceList = new GvaScript.ChoiceList(this.choices, {
-        labelField : this.options.labelField
-        });
+        labelField : this.options.labelField,
+        scrollCount: this.options.scrollCount
+      });
+
+
+      // TODO: explain and publish method "choiceElementHTML", or redesign
+      // and make it a private method
+      if ( this.choiceElementHTML ) {
+        cl.choiceElementHTML = this.choiceElementHTML;
+      }
 
       cl.onHighlight = function(event) {
         if (ac.options.typeAhead) 

@@ -159,6 +159,12 @@ GvaScript.TreeNavigator.prototype = {
       this.loadContent(node);
   },
 
+  toggle: function(node) {
+    if (this.isClosed(node))
+        this.open(node);
+    else
+        this.close(node);
+  },
 
   openEnclosingNodes: function (elem) {
     var node = this.enclosingNode(elem);
@@ -575,14 +581,18 @@ GvaScript.TreeNavigator.prototype = {
 
   _kpPlusHandler: function (event) {
     var selectedNode = this.selectedNode;
-    if (selectedNode && this.isClosed(selectedNode)) 
+    if (selectedNode && this.isClosed(selectedNode)) {
       this.open(selectedNode);
+      Event.stop(event);
+    }
   },
 
   _kpMinusHandler: function (event) {
     var selectedNode = this.selectedNode;
-    if (selectedNode && !this.isClosed(selectedNode)) 
+    if (selectedNode && !this.isClosed(selectedNode)) {
       this.close(selectedNode);
+      Event.stop(event);
+    }
   },
 
   _kpStarHandler: function (event) {

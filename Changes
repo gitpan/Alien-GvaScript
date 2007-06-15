@@ -1,5 +1,29 @@
 Revision history for Alien-GvaScript
 
+1.09    15.06.2007
+  - fixed a distribution bug due to complex interaction between old
+    versions of CPAN.pm, Module::Build and pod_coverage (the fix
+    was simple : add some pod doc in GvaScript_Builder; thanks agentz!)
+  - Autocompleter: completion if an item of the list identical 
+    to input.value (Jean-Christophe)
+
+1.08    22.05.2007
+  - Event.stop() for keypad '*' and '-' in treeNavigator
+
+1.07    02.05.2007
+  - autocompleter : support for "" in strict mode
+
+1.06    22.04.2007
+  - fix strict mode when autoSuggest=false
+
+1.05    18.04.2007
+  - fixes from Jean-Christophe (parentOffset, set_datasource)
+
+1.04    06.04.2007
+  - bug fixes && refactoring some details in autocompleter
+  - added option ANTIREGEX in KeyMap
+  - added PAGE_UP/DOWN in choiceList and option scrollCount
+
 1.03    01.04.2007
   - added options caseSensitive in autoCompleter
   - fixed bug in Builder.pm (dependendy on Pod:POM::View::HTML)

@@ -51,9 +51,21 @@
 </div>
 <div class="TN_node">
   <a class="TN_label" href="#METHODS">METHODS</a>
-  <div class="TN_content"><div class="TN_leaf">
+  <div class="TN_content"><div class="TN_node">
   <a class="TN_label" href="#KeyMap"><code>KeyMap</code></a>
+  <div class="TN_content"><div class="TN_leaf">
+  <a class="TN_label" href="#Single_key_rules">Single-key rules</a>
   <div class="TN_content"></div>
+</div>
+<div class="TN_leaf">
+  <a class="TN_label" href="#Regex_rules">Regex rules</a>
+  <div class="TN_content"></div>
+</div>
+<div class="TN_leaf">
+  <a class="TN_label" href="#Antiregex_rules">Antiregex rules</a>
+  <div class="TN_content"></div>
+</div>
+</div>
 </div>
 <div class="TN_leaf">
   <a class="TN_label" href="#eventHandler"><code>eventHandler</code></a>
@@ -249,8 +261,11 @@ to an element.</p>
     <div class="TN_content">
       <pre>  var myKeyMap = new KeyMap(rules);</pre>
 
-<p>Constructor for a keymap object. 
-The rules argument is a map from key specifications to handlers, like
+<p>Constructor for a keymap object. </p>
+  <div class="TN_node" id="Single_key_rules">
+    <h4 class="TN_label">Single-key rules</h4>
+    <div class="TN_content">
+      <p>The rules argument is a map from key specifications to handlers, like
 for example </p>
 <pre>  { A:     function() {alert("pressed 'A'");},
     S_TAB: function() {alert("pressed 'Shift-Tab'");},
@@ -261,7 +276,13 @@ for example </p>
 <p>Each key specification in the map corresponds to exacly one key
 combination, so for example <code>S_TAB</code> will not fire if the user pressed
 <code>Ctrl-Shift-Tab</code>.  </p>
-<p>For situations where several key combination will
+
+    </div>
+  </div>
+  <div class="TN_node" id="Regex_rules">
+    <h4 class="TN_label">Regex rules</h4>
+    <div class="TN_content">
+      <p>For situations where several key combination will
 fire the same handler, you can insert a <code>REGEX</code> entry in the map.
 This should be an array of triplets, where each triplet is of shape
 <code>[modifiers, regex, handler]</code>, like for example</p>
@@ -296,6 +317,21 @@ is probably not the intended meaning of the rule).</p>
 <p>The function to be called when the rule succeeds.</p>
 </li>
 </ul>
+
+    </div>
+  </div>
+  <div class="TN_node" id="Antiregex_rules">
+    <h4 class="TN_label">Antiregex rules</h4>
+    <div class="TN_content">
+      <p>An <code>ANTIREGEX</code> entry in the map
+works exactly like a <code>REGEX</code>, except that
+the handler is called when the regex does
+<b>not</b> match. This is useful if you want to 
+catch most key events, except 
+a given set.</p>
+
+    </div>
+  </div>
 
     </div>
   </div>

@@ -13,7 +13,8 @@ GvaScript.ChoiceList = function(choices, options) {
     classes          : {},        // see below for default classes
     idForChoices     : "CL_choice",
     keymap           : null,
-    grabfocus        : false
+    grabfocus        : false,
+    scrollCount      : 5
   };
 
 
@@ -31,13 +32,16 @@ GvaScript.ChoiceList = function(choices, options) {
     onmouseover : this._listOverHandler.bindAsEventListener(this),
     onclick     : this._clickHandler.bindAsEventListener(this),
     navigationRules: {
-      DOWN:   this._highlightDelta.bindAsEventListener(this, 1),
-      UP:     this._highlightDelta.bindAsEventListener(this, -1),
-      HOME:   this._highlightDelta.bindAsEventListener(this, -99999),
-      END:    this._highlightDelta.bindAsEventListener(this, 99999),
-      // TODO: PAGE_UP/DOWN : call server to get next/previous page
-      RETURN: this._returnHandler .bindAsEventListener(this),
-      ESCAPE: this._escapeHandler .bindAsEventListener(this)
+      DOWN:      this._highlightDelta.bindAsEventListener(this, 1),
+      UP:        this._highlightDelta.bindAsEventListener(this, -1),
+      PAGE_DOWN: this._highlightDelta.bindAsEventListener(this, 
+                                    this.options.scrollCount),
+      PAGE_UP:   this._highlightDelta.bindAsEventListener(this, 
+                                    -this.options.scrollCount),
+      HOME:      this._highlightDelta.bindAsEventListener(this, -99999),
+      END:       this._highlightDelta.bindAsEventListener(this, 99999),
+      RETURN:    this._returnHandler .bindAsEventListener(this),
+      ESCAPE:    this._escapeHandler .bindAsEventListener(this)
     }
   };
 };
