@@ -40,6 +40,7 @@
          
          if (!treeNav) { // if first time here, instantiate GvaScript.TreeNavigator
            treeNav = new GvaScript.TreeNavigator('menu', {
+             treeTabIndex  : -1,
              tabIndex      : -1,           // no tabbing 
              createButtons : false,        // no +/- buttons
              keymap        : textboxKeymap // reuse keymap from textbox

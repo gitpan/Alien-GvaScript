@@ -14,7 +14,9 @@ GvaScript.ChoiceList = function(choices, options) {
     idForChoices     : "CL_choice",
     keymap           : null,
     grabfocus        : false,
-    scrollCount      : 5
+    scrollCount      : 5,
+    choiceItemTagName: "div",
+    htmlWrapper      : function(html) {return html;}
   };
 
 
@@ -102,11 +104,12 @@ GvaScript.ChoiceList.prototype = {
       id += this.options.idForChoices + "." + i;
       html += this.choiceElementHTML(label, id);
     }
-    return html;
-  }, 
+    return this.options.htmlWrapper(html);
+  },
 
   choiceElementHTML: function(label, id) {
-    return "<div class='" + this.classes.choiceItem +  "' id='" + id + "'>" + label + "</div>";
+    return "<" + this.options.choiceItemTagName + " class='" + this.classes.choiceItem +  "' id='" + id + "'>" 
+           + label + "</" + this.options.choiceItemTagName + ">";
   },
 
   fireEvent: GvaScript.fireEvent, // must be copied here for binding "this" 
@@ -143,7 +146,7 @@ GvaScript.ChoiceList.prototype = {
     Element.addClassName(elem, this.classes.choiceHighlight);
 
     if (autoScroll) 
-      Element.autoScroll(elem, 30); // 30%
+      Element.autoScroll(elem, this.container, 30); // 30%
 
     this.fireEvent({type: "Highlight", index: newIndex}, elem, this.container);
   },

@@ -293,13 +293,23 @@ forms in treeNavigator sections : then
 the user will be able to smoothly tab from section headers
 (i.e. treeNavigator labels) to form fields within these sections.
 
-When C<< tabIndex >= 0 >>, the keymap created for
-capturing keyboard events is bound to the 
-tree element; otherwise it is bound globally to the 
-C<document> element. So another reason for 
-using tabbing is when there are several trees on the 
-same page : otherwise a single keypress would 
-navigate in all trees simultaneously!
+=head4 treeTabIndex
+
+Which tabIndex will be assigned to the tree element
+(if not already specified in markup).
+The default is 0; specifying a higher value
+would give a higher priority to the tree
+navigator within the tabbing order.
+
+Setting C<tabIndex> to a negative value means
+that the tree navigator receives no focus.
+In that case, the keymap created for
+capturing keyboard events will be  bound globally
+to the C<document> element (and therefore might
+interact in unpredictable ways with other elements
+capturing keys; so this is not a recommended setting). 
+
+
 
 =head4 flashDuration
 
@@ -316,6 +326,19 @@ Color for "flashing", expressed as standard CSS color; default is red.
 If true, clicking on a "+/-" button next to a label will not only open
 or close the node, but will also select that node; default is false.
 
+=head4 noPingOnFirstClick
+
+If true, clicking on an unselected node will just select that node,
+without firing the C<Ping> event. Since the node will then be selected,
+a second clic (or a double-clic) will fire the event.
+
+This option is C<false> by default.
+
+=head4 selectFirstNode
+
+If true (the default), the first node is selected and gets focus
+just after constructing the tree navigator. 
+
 =head4 createButtons
 
 If true, creates the "+/-" buttons next to labels; default is true.
@@ -327,10 +350,6 @@ its offset parent; if not, the parent is scrolled.
 The percentage is the ratio between the parent height and the 
 margin at which scrolling must occur (default is 20%);
 
-=head4 selectFirstNode
-
-If true (the default), the first node is selected just after constructing
-the tree navigator. 
 
 
 =head4 keymap

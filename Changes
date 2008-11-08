@@ -1,11 +1,33 @@
 Revision history for Alien-GvaScript
 
-1.09    15.06.2007
-  - fixed a distribution bug due to complex interaction between old
-    versions of CPAN.pm, Module::Build and pod_coverage (the fix
-    was simple : add some pod doc in GvaScript_Builder; thanks agentz!)
-  - Autocompleter: completion if an item of the list identical 
-    to input.value (Jean-Christophe)
+1.10
+  treeNavigator
+    - new option noPingOnFirstClick
+    - new option treeTabIndex
+    - by default, tree element gets tabIndex 0
+    - better focus management when quick navigation through keys
+    - doubleClick handler
+    - up/down at end of tree falls back to default navigator behaviour
+  choiceList
+    - new option choiceItemTagName
+  autoCompleter
+    - multivalued
+    - click handler on drowpdown lists
+    - new options : 
+           completeOnTab
+           actionItems      
+           multivalued      
+           multivalue_separator
+           choiceItemTagName
+           htmlWrapper      
+           observed_scroll  
+           additional_params
+           http_method      
+
+1.09
+  - upgrade to prototype.js v1.6
+  - New components GvaScript.Repeat and GvaScript.Form
+  - at end of tree, arrowdown and arrowup come back to default behaviour
 
 1.08    22.05.2007
   - Event.stop() for keypad '*' and '-' in treeNavigator

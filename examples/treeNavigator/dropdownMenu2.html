@@ -1,0 +1,301 @@
+<html>
+  <head>
+
+    <link href="../../lib/Alien/GvaScript/lib/GvaScript.css" rel="stylesheet" type="text/css">
+    <script src="../../lib/Alien/GvaScript/lib/prototype.js"></script>
+    <script src="../../lib/Alien/GvaScript/lib/GvaScript.js"></script>    <style>
+      .menu { 
+        display: none;
+        position: absolute;
+        border: 1px solid blue;
+        background-color: white;
+        padding: 4px;
+      }
+
+      /* icons on the right for dropdown menus */
+      .TN_node .TN_label {
+         background-image: url(specialIcons/navopen.gif);
+         background-repeat: no-repeat;
+         background-position: center right;
+         padding-right: 20px;
+      }
+
+      .TN_closed .TN_label {
+         background-image: url(specialIcons/navclose.gif);
+      }
+
+      .TN_leaf .TN_label {
+         background-image: none;
+      }
+    </style>
+    <script>
+
+        // Objet contenant les proprietes et les methodes pour l'utilisation
+        // d'une dropdown list dans un textbox
+        function DropDownTextBox(TextBoxId, MenuId) {
+
+            // assign l'element d'apres le id de la balise INPUT textbox
+            this.textbox = document.getElementById(TextBoxId);
+
+            // assign l'element d'apres le id de la balise DIV du menu
+            this.menu = document.getElementById(MenuId);
+
+            this.init = function() {
+                // Variable GvaScript
+                this.treeNav;       // GvaScript.TreeNavigator associated with the menu
+                this.treeNav_rules; // keymap rules of that object
+                this.textboxKeymap; // keymap associated with the input textbox
+                this.menuVisible = false// bind event handlers to the textbox
+                this.textboxKeymap = new GvaScript.KeyMap({DOWN:this.showMenu.bindAsEventListener(this),
+                                                       ESCAPE:this.hideMenu.bindAsEventListener(this)});
+                this.textboxKeymap.observe('keydown', this.textbox, {preventDefault:false,
+                                                                 stopPropagation:false});
+
+                Event.observe(this.textbox, "click",
+                              this.maybeToggleMenu.bindAsEventListener(this));
+                Event.observe(this.textbox, "blur",  
+                              this.maybeBackFocus.bindAsEventListener(this));
+        
+                with (this.textbox.style) {
+                    backgroundImage    = "url(specialIcons/navclose.gif)";
+                    backgroundRepeat   = "no-repeat";
+                    backgroundPosition = "center right";
+                }
+            }
+
+            this.showMenu = function(event) {
+                
+                if (this.menuVisible) return;
+                this.menuVisible = true;
+            
+                // if first time here, instantiate GvaScript.TreeNavigator
+                if (!this.treeNav) { 
+                    this.treeNav = new GvaScript.TreeNavigator(this.menu, {
+                        tabIndex      : -1,           // no tabbing 
+                        createButtons : false,        // no +/- buttons
+                        keymap        : this.textboxKeymap // reuse keymap from textbox
+                    });
+                }
+                else            // else reuse rules popped from last hideMenu()
+                    this.textboxKeymap.rules.push(this.treeNav_rules);  
+            
+                // make the menu visible under the textbox
+                var coords = Position.cumulativeOffset(this.textbox);
+                var dim = Element.getDimensions(this.textbox);
+                with (this.menu.style) {
+                    display = 'block';
+                    left    = coords[0];
+                    top     = coords[1] + dim.height;
+                };
+            
+                this.textbox.style.backgroundImage = "url(specialIcons/navopen.gif)";
+
+                if (event) Event.stop(event);
+            }
+
+
+            this.hideMenu = function(event) {
+                if (!this.menuVisible) return;
+                this.menuVisible = false;
+
+                this.menu.style.display = "none";
+                this.treeNav_rules = this.textboxKeymap.rules.pop();
+                this.textbox.style.backgroundImage = "url(specialIcons/navclose.gif)";
+
+                if (event) Event.stop(event);
+           }
+
+
+            this.maybeToggleMenu = function(event) { // when clicking on the textbox
+                // only handle clicks in the area right 20px of the textbox
+                var x = event.offsetX || event.layerX; // MSIE || FIREFOX
+                if (x > Element.getDimensions(this.textbox).width - 20) {
+                    if ( this.menuVisible )
+                        this.hideMenu(event);
+                    else
+                        this.showMenu(event);
+                }
+            }
+
+
+             this.selectEntry = function(event) {
+                var node = Event.element(event);
+                if (this.treeNav.isLeaf(node)) {
+                  this.textbox.value = node.getAttribute("value");
+                  this.hideMenu();
+                }
+                else {
+                  var method = this.treeNav.isClosed(node) ? this.treeNav.open :
+                                                             this.treeNav.close;
+                  method.call(this.treeNav, node);
+                }
+            }
+
+
+
+            this.maybeBackFocus = function(event) { // when leaving the textbox
+                // if leaving the textbox because of a click in menu, we must
+                // bring back focus to the textbox
+                var x = Event.pointerX(event);
+                var y = Event.pointerY(event);
+                if (Position.within(this.menu, x, y))
+                  this.textbox.focus();
+                else 
+                  this.hideMenu();
+            }
+        };
+        // FIN de la function DropDownTextBox
+
+
+
+      function setup() {  
+
+          textboxdd1 = new DropDownTextBox('textboxFAU','menuFAU');
+          textboxdd2 = new DropDownTextBox('textboxDeux','menuDeux');
+          textboxdd3 = new DropDownTextBox('textbox3','menu3');
+          textboxdd1.init(); 
+          textboxdd2.init();
+          textboxdd3.init();
+
+
+      }
+
+       var textboxdd1; 
+       var textboxdd2; 
+       var textboxdd3; 
+
+     window.onload = setup;
+
+    </script>
+
+
+  </head>
+
+  <body>
+
+    <h1>GvaScript.TreeNavigator as a dropdown menu</h1>
+
+    Press the DOWN arrow or click on the triangle: <input id='textboxFAU'>
+    
+
+    <div class="menu" id='menuFAU' onPing="textboxdd1.selectEntry.bindAsEventListener(textboxdd1)">
+      <div class="TN_leaf" value="value1" >
+        <div class="TN_label">entry 1</div> 
+      </div>
+      <div class="TN_leaf" value="value2">
+        <div class="TN_label">very <big><b>big</b></big> entry 2</div> 
+      </div>
+      <div class="TN_leaf" value="value3">
+        <div class="TN_label">an <em>emphasized</em> entry 3</div> 
+      </div>
+      <div class="TN_node TN_closed">
+        <div class="TN_label">entry 4: a submenu</div> 
+        <div class="TN_content">
+          <div class="TN_leaf" value="subvalue4.1">
+            <div class="TN_label">subentry 4.1</div> 
+          </div>
+          <div class="TN_node TN_closed">
+            <div class="TN_label">subsubmenu</div> 
+            <div class="TN_content">
+              <div class="TN_leaf" value="subvalue4.2.1">
+                <div class="TN_label">subentry 4.2.11</div> 
+              </div>
+              <div class="TN_leaf" value="subvalue4.2.2">
+                <div class="TN_label">subentry 4.2.2</div> 
+              </div>
+
+            </div>
+          </div>
+
+          <div class="TN_leaf" value="subvalue4.3">
+            <div class="TN_label">subentry 4.3</div> 
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <h2> 2eme text box </h2>
+    Press the DOWN arrow or click on the triangle: <input id='textboxDeux'>
+    
+
+    <div class="menu" id='menuDeux' onPing="textboxdd2.selectEntry.bindAsEventListener(textboxdd2)">
+      <div class="TN_leaf" value="value1_2" >
+        <div class="TN_label">2entry 1</div> 
+      </div>
+      <div class="TN_leaf" value="value2_2">
+        <div class="TN_label">very <big><b>big</b></big> entry 2</div> 
+      </div>
+      <div class="TN_leaf" value="value3_2">
+        <div class="TN_label">an <em>emphasized</em> entry 3</div> 
+      </div>
+      <div class="TN_node TN_closed">
+        <div class="TN_label">entry 4: a submenu</div> 
+        <div class="TN_content">
+          <div class="TN_leaf" value="subvalue4.1_2">
+            <div class="TN_label">subentry 4.1</div> 
+          </div>
+          <div class="TN_node TN_closed_2">
+            <div class="TN_label">subsubmenu</div> 
+            <div class="TN_content">
+              <div class="TN_leaf" value="subvalue4.2.1_2">
+                <div class="TN_label">subentry 4.2.11</div> 
+              </div>
+              <div class="TN_leaf" value="subvalue4.2.2_2">
+                <div class="TN_label">subentry 4.2.2</div> 
+              </div>
+
+            </div>
+          </div>
+
+          <div class="TN_leaf" value="subvalue4.3_2">
+            <div class="TN_label">subentry 4.3</div> 
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+
+     <h2> 3eme text box </h2>
+    Press the DOWN arrow or click on the triangle: <input id='textbox3'>
+    
+
+    <div class="menu" id='menu3' onPing="textboxdd3.selectEntry.bindAsEventListener(textboxdd3)">
+      <div class="TN_leaf" value="value1_3" >
+        <div class="TN_label">2entry 1</div> 
+      </div>
+      <div class="TN_leaf" value="value2_3">
+        <div class="TN_label">very <big><b>big</b></big> entry 2</div> 
+      </div>
+      <div class="TN_leaf" value="value3_3">
+        <div class="TN_label">an <em>emphasized</em> entry 3</div> 
+      </div>
+      <div class="TN_node TN_closed">
+        <div class="TN_label">entry 4: a submenu</div> 
+        <div class="TN_content">
+          <div class="TN_leaf" value="subvalue4.1_3">
+            <div class="TN_label">subentry 4.1</div> 
+          </div>
+          <div class="TN_node TN_closed_3">
+            <div class="TN_label">subsubmenu</div> 
+            <div class="TN_content">
+              <div class="TN_leaf" value="subvalue4.2.1_3">
+                <div class="TN_label">subentry 4.2.11</div> 
+              </div>
+              <div class="TN_leaf" value="subvalue4.2.2_3">
+                <div class="TN_label">subentry 4.2.2</div> 
+              </div>
+
+            </div>
+          </div>
+
+          <div class="TN_leaf" value="subvalue4.3_3">
+            <div class="TN_label">subentry 4.3</div> 
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </body>
+</html>

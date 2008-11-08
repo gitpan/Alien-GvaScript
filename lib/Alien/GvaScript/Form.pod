@@ -1,0 +1,65 @@
+=head1 NAME
+
+GvaScript.Form - Helper functions for forms
+
+=head1 SYNOPSIS
+
+=head1 DESCRIPTION
+
+This component helps to manage HTML forms with 
+hierarchical fields and dynamically repeated sections.
+[explain]
+
+
+=head1 METHODS
+
+=head2 init
+
+   GvaScript.Form.init(form, initial_tree)
+
+C<form> is the id of a form (or directly the DOM element). Optional C<initial_tree> is
+a javascript nested datastructure containing initial values for fields.
+
+If the initial tree contains repeated data sets, then the corresponding
+repeated sections in the form are dynamically expanded (see L</fill_from_tree>).
+
+[explain more]
+
+=head2 to_hash
+
+  var flat_hash = GvaScript.Form.to_hash(form);
+
+Inspects the contents of all fields in form and 
+returns a flat hash of pairs (key-value).
+
+=head2 to_tree
+
+  var tree = GvaScript.Form.to_tree(form);
+
+Inspects the contents of all fields in form and 
+returns a data tree, were dotted names in form names
+are expanded into sub-arrays or sub-hashes.
+
+=head2 fill_from_tree
+
+  GvaScript.Form.fill_from_tree(form, field_prefix, tree);
+
+Fills the form from values found in C<tree>. 
+Optional C<field_prefix> is prepended to key names in C<tree> for
+finding the corresponding form fields.
+If the initial tree contains repeated data sets, then the corresponding
+repeated sections in the form are dynamically expanded.
+
+[explain more]
+
+
+=head2 expand_hash
+
+  var tree = GvaScript.Form.expand_hash(flat_hash);
+
+Transforms a flat structure of key-value pairs into a nested tree
+structure, by splitting keys on dots.
+The idea and algorithm come from L<CGI::Expand/expand_hash>.
+
+
+

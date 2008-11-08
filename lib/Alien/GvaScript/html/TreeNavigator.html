@@ -76,6 +76,10 @@
   <div class="TN_content"></div>
 </div>
 <div class="TN_leaf">
+  <a class="TN_label" href="#treeTabIndex">treeTabIndex</a>
+  <div class="TN_content"></div>
+</div>
+<div class="TN_leaf">
   <a class="TN_label" href="#flashDuration">flashDuration</a>
   <div class="TN_content"></div>
 </div>
@@ -88,15 +92,19 @@
   <div class="TN_content"></div>
 </div>
 <div class="TN_leaf">
+  <a class="TN_label" href="#noPingOnFirstClick">noPingOnFirstClick</a>
+  <div class="TN_content"></div>
+</div>
+<div class="TN_leaf">
+  <a class="TN_label" href="#selectFirstNode">selectFirstNode</a>
+  <div class="TN_content"></div>
+</div>
+<div class="TN_leaf">
   <a class="TN_label" href="#createButtons">createButtons</a>
   <div class="TN_content"></div>
 </div>
 <div class="TN_leaf">
   <a class="TN_label" href="#autoScrollPercentage">autoScrollPercentage</a>
-  <div class="TN_content"></div>
-</div>
-<div class="TN_leaf">
-  <a class="TN_label" href="#selectFirstNode">selectFirstNode</a>
   <div class="TN_content"></div>
 </div>
 <div class="TN_leaf">
@@ -451,13 +459,24 @@ labels should not participate in tabbing, specify a value of -1
 forms in treeNavigator sections : then 
 the user will be able to smoothly tab from section headers
 (i.e. treeNavigator labels) to form fields within these sections.</p>
-<p>When <code>tabIndex &gt;= 0</code>, the keymap created for
-capturing keyboard events is bound to the 
-tree element; otherwise it is bound globally to the 
-<code>document</code> element. So another reason for 
-using tabbing is when there are several trees on the 
-same page : otherwise a single keypress would 
-navigate in all trees simultaneously!</p>
+
+    </div>
+  </div>
+  <div class="TN_node" id="treeTabIndex">
+    <h5 class="TN_label">treeTabIndex</h5>
+    <div class="TN_content">
+      <p>Which tabIndex will be assigned to the tree element
+(if not already specified in markup).
+The default is 0; specifying a higher value
+would give a higher priority to the tree
+navigator within the tabbing order.</p>
+<p>Setting <code>tabIndex</code> to a negative value means
+that the tree navigator receives no focus.
+In that case, the keymap created for
+capturing keyboard events will be  bound globally
+to the <code>document</code> element (and therefore might
+interact in unpredictable ways with other elements
+capturing keys; so this is not a recommended setting). </p>
 
     </div>
   </div>
@@ -485,6 +504,24 @@ or close the node, but will also select that node; default is false.</p>
 
     </div>
   </div>
+  <div class="TN_node" id="noPingOnFirstClick">
+    <h5 class="TN_label">noPingOnFirstClick</h5>
+    <div class="TN_content">
+      <p>If true, clicking on an unselected node will just select that node,
+without firing the <code>Ping</code> event. Since the node will then be selected,
+a second clic (or a double-clic) will fire the event.</p>
+<p>This option is <code>false</code> by default.</p>
+
+    </div>
+  </div>
+  <div class="TN_node" id="selectFirstNode">
+    <h5 class="TN_label">selectFirstNode</h5>
+    <div class="TN_content">
+      <p>If true (the default), the first node is selected and gets focus
+just after constructing the tree navigator. </p>
+
+    </div>
+  </div>
   <div class="TN_node" id="createButtons">
     <h5 class="TN_label">createButtons</h5>
     <div class="TN_content">
@@ -499,14 +536,6 @@ or close the node, but will also select that node; default is false.</p>
 its offset parent; if not, the parent is scrolled.
 The percentage is the ratio between the parent height and the 
 margin at which scrolling must occur (default is 20%);</p>
-
-    </div>
-  </div>
-  <div class="TN_node" id="selectFirstNode">
-    <h5 class="TN_label">selectFirstNode</h5>
-    <div class="TN_content">
-      <p>If true (the default), the first node is selected just after constructing
-the tree navigator. </p>
 
     </div>
   </div>

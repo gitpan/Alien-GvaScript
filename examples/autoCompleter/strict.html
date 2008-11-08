@@ -69,29 +69,31 @@
       ];
 
 
-      var ac_roles, ac_motifs;
+      var ac, ac_motifs;
 
-      function setup_autocompleters(form) {  
-        var options = {
-          minimumChars     : parseInt(form.minimumChars.value, 10),
-          autoSuggest      : form.autoSuggest.checked,
-          strict           : form.strict.checked,
-          blankOK          : form.blankOK.checked,
-          ignorePrefix     : form.ignorePrefix.checked,
-          typeAhead        : form.typeAhead.checked,
-          caseSensitive    : form.caseSensitive.checked,
-          autoSuggestDelay : parseInt(form.autoSuggestDelay.value, 10)
-        };
-        ac_roles  = new GvaScript.AutoCompleter(roles, options);
-        ac_motifs = new GvaScript.AutoCompleter(motifs, options);
+      function setup() {  
+        ac = new GvaScript.AutoCompleter(roles, {
+         minimumChars : 0,
+         strict       : true,
+         ignorePrefix : false,
+         typeAhead    : true,
+         caseSensitive: false,
+         autoSuggestDelay: 10
+        });
+        
+        ac_motifs = new GvaScript.AutoCompleter(motifs, {
+         minimumChars : 0,
+         strict       : true,
+         ignorePrefix : false,
+         typeAhead    : true,
+         caseSensitive: false,
+         autoSuggestDelay: 10
+        });
 
-        $('autocompleters').innerHTML 
-          = 'Role: <input onfocus="ac_roles.autocomplete(this)"> '
-          + 'Motif: <input onfocus="ac_motifs.autocomplete(this)" >';
-
-        return false;
       }
 
+
+      window.onload = setup;
 
 
     </script>
@@ -101,89 +103,12 @@
 
   <body>
 
-    <h1>Local autocompleter options</h1>
-<p>
-<em>
-This page allows you to explore various options when
-creating an autocompleter with local datasource 
-(no connected to Ajax)
-</em>
-</p>
-
-<form onsubmit="return setup_autocompleters(this)">
-<fieldset>
-<table>
-<col align="right">
-<col align="left">
-
-<tr>
-  <td>minimumChars</td>
-  <td>
-    <input type="text" name="minimumChars" value="0" size="1">
-  </td>
-</tr>
-
-<tr>
-  <td>autoSuggest</td>
-  <td>
-    <input type="checkbox" name="autoSuggest" checked>
-  </td>
-</tr>
-
-<tr>
-  <td>ignorePrefix</td>
-  <td>
-    <input type="checkbox" name="ignorePrefix" >
-  </td>
-</tr>
-
-<tr>
-  <td>typeAhead</td>
-  <td>
-    <input type="checkbox" name="typeAhead" >
-  </td>
-</tr>
-
-<tr>
-  <td>strict</td>
-  <td>
-    <input type="checkbox" name="strict" checked>
-  </td>
-</tr>
-
-<tr>
-  <td>blankOK</td>
-  <td>
-    <input type="checkbox" name="blankOK" checked>
-  </td>
-</tr>
-
-<tr>
-  <td>caseSensitive</td>
-  <td>
-    <input type="checkbox" name="caseSensitive" >
-  </td>
-</tr>
+    <h1>Autocompleter strict</h1>
 
 
-<tr>
-  <td>autoSuggestDelay</td>
-  <td>
-    <input type="text" name="autoSuggestDelay" value="10" size="3">
-  </td>
-</tr>
+Role: <input onfocus="ac.autocomplete(this)" ><br>
+Motif: <input onfocus="ac_motifs.autocomplete(this)" ><br>
 
-
-</table>
-
-<input type="submit" value="setup autocompleters">
-
-</fieldset>
-</form>
-
-
-<div id="autocompleters">
-</div>
 
   </body>
 </html>

@@ -28,6 +28,19 @@
   color: #f24;
 }
 
+.AC_input { 
+  background-position: right;
+  background-repeat: no-repeat;
+  background-image: url(autocomplete.gif);
+}
+
+.AC_loading { 
+  background-position: right;
+  background-repeat: no-repeat;
+  background-image: url(ajax_loading_small.gif);
+}
+
+
 /* TREE NAVIGATOR */
 
 /* nodes have a dotted line on the left, to visually represent the hierachy */

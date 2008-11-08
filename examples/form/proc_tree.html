@@ -1,0 +1,149 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <link href="../../lib/Alien/GvaScript/lib/GvaScript.css" rel="stylesheet" type="text/css">
+    <script src="../../lib/Alien/GvaScript/lib/prototype.js"></script>
+    <script src="../../lib/Alien/GvaScript/lib/GvaScript.js"></script>
+    <style>.TN_label {font-weight: bold}</style>
+<script>
+
+function msg(msg) {
+  $('msgs').innerHTML += "<br>" + msg;
+}
+
+
+var tree = {
+  proc:{
+    motif:[
+      undefined, 
+      {C_MOTIF:"C1"}, 
+      {C_MOTIF:"C2", TXT_MOTIF: true},
+      {C_MOTIF:"C3", TXT_MOTIF:123},
+      {C_MOTIF:"C4", TXT_MOTIF:456},
+      {C_MOTIF:"C5"}
+      ],
+    partie:[
+      undefined,
+      {C_ROLE_PARTIE:"DEM", NOM_PRE_ROLE:"TOTO 1", 
+       avoc: [undefined, {CLE_AVOC: 1234}, {CLE_AVOC: 5678}]},
+      {C_ROLE_PARTIE:"DEF", NOM_PRE_ROLE:"TOTO 2", 
+       avoc: [undefined, {CLE_AVOC: 1111}, {CLE_AVOC: 2222}, {CLE_AVOC: 3333}]},
+      {C_ROLE_PARTIE:"TEM", NOM_PRE_ROLE:"TOTO 3"}
+      ]
+  }
+};
+
+
+var tn;
+
+function setup() {
+  var form = $('form');
+
+  GvaScript.Form.init(form, tree);
+  // GvaScript.Form.fill_from_tree(form, undefined, tree);
+
+  tn = new GvaScript.TreeNavigator(form, {tabIndex: 0});
+}
+
+window.onload = setup;
+
+function init_repeated_subtree(event) {
+  if (tn) tn.initSubTree(event.target);
+}
+
+
+</script>
+
+  </head>
+
+  <body>
+    <h1>Tst form with repeat</h1>
+
+
+<form id="form" method="post">
+
+
+
+<div class="TN_node">
+  <span class="TN_label">Motifs</span>
+  <div class="TN_content">
+
+    <table>
+      <tr> 
+       <td>Ix</td>
+       <td>Code</td>
+       <td>Texte</td>
+      </tr>
+      <tr repeat="motif" repeat-start="3" repeat-prefix="proc">
+        <td>#{motif.ix}</td>
+        <td><input name="#{motif.path}.C_MOTIF" size="4"></td>
+        <td><input name="#{motif.path}.TXT_MOTIF" size="20"></td>
+        </td>
+      </tr>
+    </table>
+    <button onclick="GvaScript.Repeat.add('proc.motif'); return false">Nouveau motif</button>
+  </div>
+</div>
+
+
+<div class="TN_node"
+    repeat="partie" repeat-prefix="proc"
+    onRepeat="init_repeated_subtree">
+  <span class="TN_label">Partie #{partie.ix}</span>
+  <div class="TN_content">
+     <table>
+       <tr><td>Rôle</td>
+          <td><input name="#{partie.path}.C_ROLE_PARTIE"
+                       size="4"></td>
+       </tr>
+
+       <tr><td>Nom/pré</td>
+          <td><input name="#{partie.path}.NOM_PRE_ROLE"
+                       size="20"></td>
+       </tr>
+
+       <tr><td>Justiciable</td>
+          <td><input name="#{partie.path}.CLE_PARTIE"
+                       size="10"></td>
+       </tr>
+
+       <tr><td>Avocats</td>
+          <td><table>
+               <tr repeat="avoc">
+                 <td>#{avoc.ix}</td>
+                 <td><input name="#{avoc.path}.CLE_AVOC"></td>
+               </tr>
+             </table>
+              <button onclick="GvaScript.Repeat.add('#{partie.path}.avoc'); return false">
+                Nouvel avocat
+              </button>
+
+          </td>
+       </tr>
+     </table>
+  </div>
+</div><!-- fin div partie -->
+
+<button onclick="GvaScript.Repeat.add('proc.partie'); return false">
+  Nouvelle partie
+</button>
+
+
+
+<br>
+<input type="submit" onclick="show_tree(this.form); return false">
+
+</form>
+
+
+
+<div id="msgs"></div>
+
+
+
+</body>
+</html>
+
+
+
+

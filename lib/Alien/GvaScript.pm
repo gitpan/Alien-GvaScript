@@ -5,7 +5,7 @@ use warnings;
 use File::Copy qw(copy);
 use File::Path qw(mkpath);
 
-our $VERSION = '1.09';
+our $VERSION = '1.10';
 
 
 sub path {
@@ -127,14 +127,6 @@ Copies GvaScript files into the directory supplied as argument
 Laurent Dami, C<< <laurent.d...@etat.ge.ch> >>
 
 Jean_Christophe Durand, C<< <jean-christophe.d.....@etat.ge.ch> >>
-
-=head1 ACKNOWLEDGEMENTS
-
-A big thanks to Agent Zhang who helped to find out what 
-was wrong with the CPAN distribution (several people complained 
-about not being able to install, but I couldn't reproduce the 
-problem until Agent investigated and explained me what was going on).
-
 
 =head1 BUGS
 

@@ -236,6 +236,43 @@ How many items to skip when hitting the
 C<PAGE_UP> or C<PAGE_DOWN> keys. 
 Default is 5
 
+=item htmlWrapper
+
+See the C<ChoiceList> documentation.
+
+=item choiceItemTagName
+
+See the C<ChoiceList> documentation.
+
+=item classes
+
+Classes that will be assigned at various stages
+to autocompleter DOM elements .
+Possible classes are 
+
+=over 
+
+
+=item loading
+
+Class added to the  input or textarea field while an Ajax
+request is pending. Default is C<AC_loading>, a class that displays
+an Ajax-loading icon.
+
+=item dropdown
+
+Class for the dropdown div that displays the autocompletion choices.
+Default is C<AC_dropdown>.
+
+=item message
+
+Class for displaying warning messages.
+Default is C<AC_message>.
+
+
+=back
+
+
 =back
 
 =head1 METHODS

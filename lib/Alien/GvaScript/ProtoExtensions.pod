@@ -75,7 +75,19 @@ occurs if the element is in the higher than the top 20% or
 lower than the bottom 20% of the viewport.
 
 
-=head2 Element extensions
+=head3 outerHTML
+
+  Element.outerHTML(elem)
+
+Returns a string representation of the DOM element,
+including tags and attributes. Implemented through
+the native C<outerHTML> property, if present; otherwise
+constructs a string from tag name, attributes and 
+innerHTML property.
+   
+
+
+=head2 Event extensions
 
 =head3 detailedStop
 

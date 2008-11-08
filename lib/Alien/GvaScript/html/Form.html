@@ -1,0 +1,164 @@
+<html>
+<head>
+  <link href="../lib/GvaScript.css" rel="stylesheet" type="text/css">
+  <script src="../lib/prototype.js"></script>
+  <script src="../lib/GvaScript.js"></script>
+  <link href="GvaScript_doc.css" rel="stylesheet" type="text/css">
+  <script>
+    var treeNavigator;
+    function setup() {  
+      new GvaScript.TreeNavigator('TN_tree');
+    }
+    window.onload = setup;
+    function jumpto_href(event) {
+      var label = event.controller.label(event.target);
+      if (label && label.tagName == "A") {
+        label.focus();
+        return Event.stopNone;
+      }
+    }
+  </script>
+</head>
+<body>
+<div id='TN_tree'>
+  <div class="TN_node">
+   <h1 class="TN_label">GvaScript.Form</h1>
+   <div class="TN_content">
+     <p><em>Helper functions for forms
+</em></p>
+     <div class="TN_node"  onPing="jumpto_href">
+       <h3 class="TN_label">Table of contents</h3>
+       <div class="TN_content">
+         <div class="TN_leaf">
+  <a class="TN_label" href="#NAME">NAME</a>
+  <div class="TN_content"></div>
+</div>
+<div class="TN_leaf">
+  <a class="TN_label" href="#SYNOPSIS">SYNOPSIS</a>
+  <div class="TN_content"></div>
+</div>
+<div class="TN_leaf">
+  <a class="TN_label" href="#DESCRIPTION">DESCRIPTION</a>
+  <div class="TN_content"></div>
+</div>
+<div class="TN_node">
+  <a class="TN_label" href="#METHODS">METHODS</a>
+  <div class="TN_content"><div class="TN_leaf">
+  <a class="TN_label" href="#init">init</a>
+  <div class="TN_content"></div>
+</div>
+<div class="TN_leaf">
+  <a class="TN_label" href="#to_hash">to_hash</a>
+  <div class="TN_content"></div>
+</div>
+<div class="TN_leaf">
+  <a class="TN_label" href="#to_tree">to_tree</a>
+  <div class="TN_content"></div>
+</div>
+<div class="TN_leaf">
+  <a class="TN_label" href="#fill_from_tree">fill_from_tree</a>
+  <div class="TN_content"></div>
+</div>
+<div class="TN_leaf">
+  <a class="TN_label" href="#expand_hash">expand_hash</a>
+  <div class="TN_content"></div>
+</div>
+</div>
+</div>
+
+       </div>
+     </div>
+     <hr/>
+   </div>
+  </div>
+  <div class="TN_node" id="NAME">
+    <h2 class="TN_label">NAME</h2>
+    <div class="TN_content">
+      <p>GvaScript.Form - Helper functions for forms</p>
+
+    </div>
+  </div>
+  <div class="TN_node" id="SYNOPSIS">
+    <h2 class="TN_label">SYNOPSIS</h2>
+    <div class="TN_content">
+      
+    </div>
+  </div>
+  <div class="TN_node" id="DESCRIPTION">
+    <h2 class="TN_label">DESCRIPTION</h2>
+    <div class="TN_content">
+      <p>This component helps to manage HTML forms with 
+hierarchical fields and dynamically repeated sections.
+[explain]</p>
+
+    </div>
+  </div>
+  <div class="TN_node" id="METHODS">
+    <h2 class="TN_label">METHODS</h2>
+    <div class="TN_content">
+        <div class="TN_node" id="init">
+    <h3 class="TN_label">init</h3>
+    <div class="TN_content">
+      <pre>   GvaScript.Form.init(form, initial_tree)</pre>
+
+<p><code>form</code> is the id of a form (or directly the DOM element). Optional <code>initial_tree</code> is
+a javascript nested datastructure containing initial values for fields.</p>
+<p>If the initial tree contains repeated data sets, then the corresponding
+repeated sections in the form are dynamically expanded (see <a href="#fill_from_tree">/fill_from_tree</a>).</p>
+<p>[explain more]</p>
+
+    </div>
+  </div>
+  <div class="TN_node" id="to_hash">
+    <h3 class="TN_label">to_hash</h3>
+    <div class="TN_content">
+      <pre>  var flat_hash = GvaScript.Form.to_hash(form);</pre>
+
+<p>Inspects the contents of all fields in form and 
+returns a flat hash of pairs (key-value).</p>
+
+    </div>
+  </div>
+  <div class="TN_node" id="to_tree">
+    <h3 class="TN_label">to_tree</h3>
+    <div class="TN_content">
+      <pre>  var tree = GvaScript.Form.to_tree(form);</pre>
+
+<p>Inspects the contents of all fields in form and 
+returns a data tree, were dotted names in form names
+are expanded into sub-arrays or sub-hashes.</p>
+
+    </div>
+  </div>
+  <div class="TN_node" id="fill_from_tree">
+    <h3 class="TN_label">fill_from_tree</h3>
+    <div class="TN_content">
+      <pre>  GvaScript.Form.fill_from_tree(form, field_prefix, tree);</pre>
+
+<p>Fills the form from values found in <code>tree</code>. 
+Optional <code>field_prefix</code> is prepended to key names in <code>tree</code> for
+finding the corresponding form fields.
+If the initial tree contains repeated data sets, then the corresponding
+repeated sections in the form are dynamically expanded.</p>
+<p>[explain more]</p>
+
+    </div>
+  </div>
+  <div class="TN_node" id="expand_hash">
+    <h3 class="TN_label">expand_hash</h3>
+    <div class="TN_content">
+      <pre>  var tree = GvaScript.Form.expand_hash(flat_hash);</pre>
+
+<p>Transforms a flat structure of key-value pairs into a nested tree
+structure, by splitting keys on dots.
+The idea and algorithm come from <i>CGI::Expand/expand_hash</i>.</p>
+
+    </div>
+  </div>
+
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

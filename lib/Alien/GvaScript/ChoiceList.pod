@@ -89,6 +89,24 @@ Classes that will be assigned to choice elements in the generated
 HTML. Possible classes are C<choiceItem> (default value C<CL_choiceItem>) and
 C<choiceHighlight> (default value C<CL_highlight>).
 
+
+=item htmlWrapper
+
+Callback function for generating HTML for the choiceList.
+This function is called with some pre-built HTML containing
+all current choices; the wrapper has a chance to modify 
+that HTML for example for adding classes, borders or 
+table headers. Default is the identity function.
+
+
+=item choiceItemTagName
+
+HTML tag name for generating a choice entry in the choice list.
+Default is "div". Set it to "tr" if you want the choice list
+to be displayed as a table (but then you also have to 
+open and close the table within the C<htmlWrapper> callback).
+
+
 =back
 
 =head1 METHODS

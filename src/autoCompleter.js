@@ -30,10 +30,18 @@ GvaScript.AutoCompleter = function(datasource, options) {
     minWidth         : 200,       // pixels
     offsetX          : 0,         // pixels
     strict           : false,     // will not force to take value from choices
+    completeOnTab    : true,     // will not force to take value from choices
     blankOK          : true,
     colorIllegal     : "red",
     scrollCount      : 5,
-    actionItems      : null       // choice items to invoke javascript method
+    actionItems      : null,       // choice items to invoke javascript method
+    multivalued      : false,
+    multivalue_separator :  /[;,\s\t]/,
+    choiceItemTagName: "div",
+    htmlWrapper      : function(html) {return html;},
+    observed_scroll  : null,      // observe the scroll of a given element and move the dropdown accordingly (useful in case of scrolling windows)
+    additional_params: null,        //additional parameters with optional default values (only in the case where the datasource is a URL)
+    http_method      : 'get' // when additional_params is set, we might to just pass them in the body of the request
   };
 
   // more options for array datasources
@@ -45,12 +53,19 @@ GvaScript.AutoCompleter = function(datasource, options) {
   this.options = Class.checkOptions(defaultOptions, options);
 
   var defaultClasses = {
+    loading         : "AC_loading",
     dropdown        : "AC_dropdown",
     message         : "AC_message",
-    loading         : "AC_loading",
-    action          : "AC_action"
+    action          : "AC_action"  // undocumented on purpose !
   };
   this.classes = Class.checkOptions(defaultClasses, this.options.classes);
+  
+  this.separator = new RegExp(this.options.multivalue_separator);
+  this.default_separator_char = " "; //character used when the values are joined
+
+  if (this.options.multivalued && this.options.strict) {
+    throw new Error("not allowed to have a multivalued autocompleter in strict mode");
+  }
 
   this.dropdownDiv = null;
 
@@ -69,7 +84,8 @@ GvaScript.AutoCompleter = function(datasource, options) {
 
   // prepare some stuff to be reused when binding to inputElements
   this.reuse = {
-    onblur : this._blurHandler.bindAsEventListener(this)
+    onblur  : this._blurHandler.bindAsEventListener(this),
+    onclick : this._clickHandler.bindAsEventListener(this)
   };
 }
 
@@ -96,6 +112,7 @@ GvaScript.AutoCompleter.prototype = {
       this.keymap.observe("keydown", elem, { preventDefault:false,
                                              stopPropagation:false});
       Element.observe(elem, "blur", this.reuse.onblur);
+      Element.observe(elem, "click", this.reuse.onclick);
     }
 
     // initialize time stamps
@@ -124,6 +141,24 @@ GvaScript.AutoCompleter.prototype = {
     Element.addClassName(div, this.classes.message);
   },
 
+  // set additional params for autocompleters that have more than 1 param;
+  // second param is the HTTP method (post or get)
+  setAdditionalParams : function(params, method) {
+    this.additional_params = params;           
+    this.http_method = method;
+  },
+
+  addAdditionalParam : function(param, value) {
+    this.additional_params[param] = value;
+  },
+
+  setHttpMethod : function(method) {
+    if (method != 'get' || method != 'post') {
+        alert('Unrecognised type of http method')
+    }
+    this.http_method = method;
+  }, 
+
   //
   // TODO: TO BE REMOVED OR COMMITED TO ALIEN PACKAGE
   //
@@ -132,6 +167,31 @@ GvaScript.AutoCompleter.prototype = {
   },
 
   fireEvent: GvaScript.fireEvent, // must be copied here for binding "this" 
+
+  // Set the element for the AC to look at to adapt its position. If elem is
+  // null, stop observing the scroll.
+  set_observed_scroll : function(elem) {
+    if (!elem) {
+        Event.stopObserving(this.observed_scroll, 'scroll', correct_dropdown_position);
+        return;
+    }
+
+    this.observed_scroll = elem;
+    this.currentScrollTop = elem.scrollTop;
+    this.currentScrollLeft = elem.scrollLeft;
+    var correct_dropdown_position = function() {
+      if (this.dropdownDiv) {
+        var dim = Element.getDimensions(this.inputElement);
+        var pos = this.dropdownDiv.positionedOffset()
+        this.dropdownDiv.style.top  = pos.top - (this.observed_scroll.scrollTop - this.currentScrollTop) + "px";
+        this.dropdownDiv.style.left = pos.left - this.observed_scroll.scrollLeft + "px"; 
+      }
+      this.currentScrollTop = this.observed_scroll.scrollTop;
+      this.currentScrollLeft = this.observed_scroll.scrollLeft;
+    }
+
+    Event.observe(elem, 'scroll', correct_dropdown_position.bindAsEventListener(this));
+  },
 
 
 //----------------------------------------------------------------------
@@ -147,12 +207,32 @@ GvaScript.AutoCompleter.prototype = {
         if (this._runningAjax)
           this._runningAjax.transport.abort();
         Element.addClassName(autocompleter.inputElement, this.classes.loading);
+        var toCompleteVal = this._getValueToComplete();
+        
+        //integrate possible additional parameters in the URL request
+        var additional_params = this.additional_params;// for example {C_ETAT_AVOC : 'AC'}
+        var http_method = this.http_method ? this.http_method : this.options.http_method;
+        var partial_url = '';
+        if (additional_params && http_method == 'get') {
+            for (var key in additional_params) {
+                partial_url += "&" + key + "=" + additional_params[key]; 
+            }
+        } 
+
+        var complete_url = datasource + toCompleteVal + partial_url;
         this._runningAjax = new Ajax.Request(
-          datasource + autocompleter.inputElement.value,
+          complete_url,
           {asynchronous: true,
+           method: http_method,
+           postBody: this.http_method == 'post' ? Object.toJSON(additional_params) : null,
+           contentType: "text/javascript",
            onSuccess: function(xhr) {
               autocompleter._runningAjax = null;
-              autocompleter.choices = eval("(" + xhr.responseText + ")");
+
+              // do nothing if aborted by the onblur handler
+              if(xhr.transport.status == 0) return;
+
+              autocompleter.choices = xhr.responseJSON;
               autocompleter._displayChoices();
            },
            onFailure: function(xhr) {
@@ -170,7 +250,7 @@ GvaScript.AutoCompleter.prototype = {
     else if (typeof datasource == "function") { // callback
       return function() {
         this.inputElement.style.backgroundColor = ""; // remove colorIllegal
-        this.choices = datasource(this.inputElement.value);
+        this.choices = datasource(this._getValueToComplete());
         return false; // not asynchronous
       };
     }
@@ -181,7 +261,8 @@ GvaScript.AutoCompleter.prototype = {
         if (this.options.ignorePrefix)
           this.choices = datasource;
         else {
-          var regex = new RegExp("^" + this.inputElement.value,
+            var toCompleteVal = this._getValueToComplete();
+            var regex = new RegExp("^" + toCompleteVal,
                                  this.options.caseSensitive ? "" : "i");
           var matchPrefix = function(choice) {
 	    var value;
@@ -209,8 +290,14 @@ GvaScript.AutoCompleter.prototype = {
 
     // check if this is a "real" blur, or just a clik on dropdownDiv
     if (this.dropdownDiv) {
-      var x = Event.pointerX(window.event);
-      var y = Event.pointerY(window.event);
+      var targ;
+      var e = event;
+      if (e.target) targ = e.target;
+      else if (e.srcElement) targ = e.srcElement;
+      if (targ.nodeType && targ.nodeType == 3) // defeat Safari bug
+          targ = targ.parentNode;
+      var x = Event.pointerX(e) || Position.cumulativeOffset(targ)[0];
+      var y = Event.pointerY(e) || Position.cumulativeOffset(targ)[1];
       if (Position.within(this.dropdownDiv, x, y)) {
         // not a "real" blur ==> bring focus back to the input element
         this.inputElement.focus(); // will trigger again this.autocomplete()
@@ -221,7 +308,6 @@ GvaScript.AutoCompleter.prototype = {
       }
     }
     if (this.options.strict) {
-
       // initially : not OK unless options.blankOK and value is empty
       var valueOK = this.options.blankOK && this.inputElement.value == "";
 
@@ -233,12 +319,10 @@ GvaScript.AutoCompleter.prototype = {
       }
 
       // else update choices and then check
-      else { 
+      else {
         var async = this.updateChoices(); 
-
         // can only check if in synchronous mode
         if (!async) {
-
           // if got one single choice, take the canonic form of that one
           if (this.choices.length == 1) { 
             this.inputElement.value 
@@ -274,13 +358,25 @@ GvaScript.AutoCompleter.prototype = {
         this.inputElement.style.backgroundColor = this.options.colorIllegal;
       }
     }
-        
+
+    if(this._runningAjax) this._runningAjax.transport.abort();
     this.fireEvent("Leave", this.inputElement);
     this.inputElement = null;
   },
 
+  _clickHandler: function(event) {
+    var x = event.offsetX || event.layerX; // MSIE || FIREFOX
+    if (x > Element.getDimensions(this.inputElement).width - 20) {
+        if ( this.dropdownDiv )
+            this._removeDropdownDiv(event);
+        else
+            this._keyDownHandler(event);
+    }
+  },
+
   _keyDownHandler: function(event) { 
-    var valueLength = (this.inputElement.value || "").length; 
+    var value = this._getValueToComplete(); 
+    var valueLength = (value || "").length; 
     if (valueLength < this.options.minimumChars)
       this.displayMessage("liste de choix à partir de " 
                             + this.options.minimumChars + " caractères");
@@ -323,7 +419,11 @@ GvaScript.AutoCompleter.prototype = {
 
     // OK, we really have to check the value now
     this._timeLastCheck = now;
-    var value = this.inputElement.value;
+    var value = this.inputElement.value; //normal case
+    if (this.options.multivalued) { 
+        var vals = (this.inputElement.value).split(this.separator);
+        var value = vals[-1];
+    }
     if (value != this.lastValue) {
       this.lastValue = value;
       this.choices = null; // value changed, so invalidate previous choices
@@ -337,6 +437,32 @@ GvaScript.AutoCompleter.prototype = {
     }
   },
 
+  // return the value to be completed; added for multivalued autocompleters                  
+  _getValueToComplete : function() {
+    var toCompleteVal = this.inputElement.value;
+    if (this.options.multivalued) {
+        vals = (this.inputElement.value).split(this.separator);
+        toCompleteVal = vals[vals.length-1].replace(/\s+/, "");
+    }
+    return toCompleteVal;
+  },
+
+  // set the value of the field; used to set the new value of the field once the user 
+  // pings a choice item 
+  _setValue : function(value) {              
+    if (!this.options.multivalued) {
+        this.inputElement.value = value;
+    } else {
+        var vals = (this.inputElement.value).split(this.separator);
+        var result = (this.separator).exec(this.inputElement.value);
+        if (result) {
+            var user_sep = result[0];
+        }
+        vals[vals.length-1] = value;
+        this.inputElement.value = (vals).join(user_sep); 
+    }
+  
+  },
 
   _typeAhead : function () {
     var curLen     = this.lastValue.length;
@@ -364,6 +490,14 @@ GvaScript.AutoCompleter.prototype = {
   _mkDropdownDiv : function() {
     this._removeDropdownDiv();
 
+    // if observed element for scroll, reposition
+    var movedUpBy = 0;
+    var movedLeftBy = 0;
+    if (this.observed_scroll) {
+        movedUpBy = this.observed_scroll.scrollTop;
+        movedLeftBy = this.observed_scroll.scrollLeft;
+    }
+
     // create div
     var div    = document.createElement('div');
     div.className = this.classes.dropdown;
@@ -371,11 +505,11 @@ GvaScript.AutoCompleter.prototype = {
     // positioning
     var coords = Position.cumulativeOffset(this.inputElement);
     var dim    = Element.getDimensions(this.inputElement);
-    div.style.left      = (coords[0]+this.options.offsetX) + "px";
-    div.style.top       = coords[1] + dim.height + "px";
+    div.style.left      = coords[0] + this.options.offsetX - movedLeftBy + "px";
+    div.style.top       = coords[1] + dim.height -movedUpBy + "px";
     div.style.maxHeight = this.options.maxHeight + "px";
     div.style.minWidth  = this.options.minWidth + "px";
-    div.style.zIndex    = 32767; //Seems to be the highest valide value
+    div.style.zIndex    = 32767; //Seems to be the highest valid value
 
     // insert into DOM
     document.body.appendChild(div);
@@ -394,8 +528,9 @@ GvaScript.AutoCompleter.prototype = {
 
 
   _displayChoices: function() {
+    var toCompleteVal = this._getValueToComplete();
     if (!this.choices) {
-      var asynch = this.updateChoices();
+      var asynch = this.updateChoices(toCompleteVal);
       if (asynch) return; // updateChoices() is responsible for calling back
     }
 
@@ -411,8 +546,10 @@ GvaScript.AutoCompleter.prototype = {
     if (this.choices.length > 0) {
       var ac = this;
       var cl = this.choiceList = new GvaScript.ChoiceList(this.choices, {
-        labelField : this.options.labelField,
-        scrollCount: this.options.scrollCount
+        labelField        : this.options.labelField,
+        scrollCount       : this.options.scrollCount,
+        choiceItemTagName : this.options.choiceItemTagName,
+        htmlWrapper       : this.options.htmlWrapper
       });
 
 
@@ -438,7 +575,10 @@ GvaScript.AutoCompleter.prototype = {
       cl.fillContainer(this._mkDropdownDiv());
 
       // playing with the keymap: when tabbing, should behave like RETURN
+      var autocompleter = this;
       cl.keymap.rules[0].TAB = cl.keymap.rules[0].S_TAB = function(event) {
+        if (!autocompleter.options.completeOnTab)
+            return;
         var index = cl.currentHighlightedIndex;
         if (index != undefined) {
           var elem = cl._choiceElem(index);
@@ -480,29 +620,38 @@ GvaScript.AutoCompleter.prototype = {
   },
 
 
-
+  //triggered by the onPing event on the choicelist, i.e. when the user selects
+  //one of the choices in the list
   _completeFromChoiceElem: function(elem) {
+    // identify the selected line and handle it
     var num = parseInt(elem.id.match(/\.(\d+)$/)[1], 10);
-
     var choice = this.choices[num];
-    if (!choice) throw new Error("choice number is out of range : " + num);
+    if (!choice && choice!="" && choice!=0) 
+        throw new Error("choice number is out of range : " + num);
     var action = choice['action'];
     if (action) {
         this._removeDropdownDiv(); 
         eval(action);
         return;
     }
+
+    // add the value to the input element
     var value = this._valueFromChoice(num);
-    if (value) {
-      this.inputElement.value = this.lastValue = value;
-      this.inputElement.jsonValue = choice;
+    //if (value) {
+      this.lastValue = value;
+      this._setValue(value)
+//      this.inputElement.value = this.lastValue = value;
+      this.inputElement.jsonValue = choice; //never used elsewhere?!
       this._removeDropdownDiv();
-      this.inputElement.select();
+      if (!this.options.multivalued) {
+        this.inputElement.select();
+      } 
       this.fireEvent({type: "Complete", index: num}, elem, this.inputElement); 
-    } else {
-    }
+    //} else {
+    //}
     // else WHAT ??
     //    - might have other things to trigger (JS actions / hrefs)
   }
 
 }
+

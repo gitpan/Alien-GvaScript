@@ -43,7 +43,7 @@ Object.extend(Element, {
   },
 
 
-  autoScroll: function(elem, percentage) {
+  autoScroll: function(elem, container, percentage) {
      percentage = percentage || 20; // default                  
      var parent = elem.offsetParent;
      var offset = elem.offsetTop;
@@ -66,26 +66,30 @@ Object.extend(Element, {
        // .. TODO: need to investigate further how firefox handles offsets.
      }
 
-     var min = offset - (parent.clientHeight * (100-percentage)/100);
-     var max = offset - (parent.clientHeight * percentage/100);
-     if      (parent.scrollTop < min) parent.scrollTop = min;
-     else if (parent.scrollTop > max) parent.scrollTop = max;
+     container = container || parent;
+
+     var min = offset - (container.clientHeight * (100-percentage)/100);
+     var max = offset - (container.clientHeight * percentage/100);
+     if      (container.scrollTop < min) container.scrollTop = min;
+     else if (container.scrollTop > max) container.scrollTop = max;
   },
 
   outerHTML: function(elem) {
-     var tag = elem.tagName;
-     if (!tag)
-         return elem;
-     if (elem.outerHTML) {
-         return elem.outerHTML;
-     } else {
-         var attrs = elem.attributes;
-         var str = "<" + tag;
-         for (var i = 0; i < attrs.length; i++)
-             str += " " + attrs[i].name + "=\"" + attrs[i].value + "\"";
-
-         return str + ">" + elem.innerHTML + "</" + elem.tagName + ">";
-     }
+    var tag = elem.tagName;
+    if (!tag)
+      return elem;           // not an element node
+    if (elem.outerHTML)
+      return elem.outerHTML; // has builtin implementation 
+    else {
+      var attrs = elem.attributes;
+      var str = "<" + tag;
+      for (var i = 0; i < attrs.length; i++) {
+        var val = attrs[i].value;
+        var delim = val.indexOf('"') > -1 ? "'" : '"';
+        str += " " + attrs[i].name + "=" + delim + val + delim;
+      }
+      return str + ">" + elem.innerHTML + "</" + tag + ">";
+    }
   }
 
 });

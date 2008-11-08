@@ -177,6 +177,19 @@ Default is 5</p>
 HTML. Possible classes are <code>choiceItem</code> (default value <code>CL_choiceItem</code>) and
 <code>choiceHighlight</code> (default value <code>CL_highlight</code>).</p>
 </li>
+<li><a name="item_htmlWrapper"></a><b>htmlWrapper</b>
+<p>Callback function for generating HTML for the choiceList.
+This function is called with some pre-built HTML containing
+all current choices; the wrapper has a chance to modify 
+that HTML for example for adding classes, borders or 
+table headers. Default is the identity function.</p>
+</li>
+<li><a name="item_choiceItemTagName"></a><b>choiceItemTagName</b>
+<p>HTML tag name for generating a choice entry in the choice list.
+Default is "div". Set it to "tr" if you want the choice list
+to be displayed as a table (but then you also have to 
+open and close the table within the <code>htmlWrapper</code> callback).</p>
+</li>
 </ul>
 
     </div>
