@@ -15,7 +15,6 @@ function msg(msg) {
 var tree = {
   proc:{
     motif:[
-      undefined, 
       {C_MOTIF:"C1"}, 
       {C_MOTIF:"C2", TXT_MOTIF: true},
       {C_MOTIF:"C3", TXT_MOTIF:123},
@@ -23,11 +22,10 @@ var tree = {
       {C_MOTIF:"C5"}
       ],
     partie:[
-      undefined,
       {C_ROLE_PARTIE:"DEM", NOM_PRE_ROLE:"TOTO 1", 
-       avoc: [undefined, {CLE_AVOC: 1234}, {CLE_AVOC: 5678}]},
+       avoc: [{CLE_AVOC: 1234}, {CLE_AVOC: 5678}]},
       {C_ROLE_PARTIE:"DEF", NOM_PRE_ROLE:"TOTO 2", 
-       avoc: [undefined, {CLE_AVOC: 1111}, {CLE_AVOC: 2222}, {CLE_AVOC: 3333}]},
+       avoc: [{CLE_AVOC: 1111}, {CLE_AVOC: 2222}, {CLE_AVOC: 3333}]},
       {C_ROLE_PARTIE:"TEM", NOM_PRE_ROLE:"TOTO 3"}
       ]
   }
@@ -40,8 +38,6 @@ function setup() {
   var form = $('form');
 
   GvaScript.Form.init(form, tree);
-  // GvaScript.Form.fill_from_tree(form, undefined, tree);
-
   tn = new GvaScript.TreeNavigator(form, {tabIndex: 0});
 }
 
@@ -75,7 +71,7 @@ function init_repeated_subtree(event) {
        <td>Texte</td>
       </tr>
       <tr repeat="motif" repeat-start="3" repeat-prefix="proc">
-        <td>#{motif.ix}</td>
+        <td>#{motif.count}</td>
         <td><input name="#{motif.path}.C_MOTIF" size="4"></td>
         <td><input name="#{motif.path}.TXT_MOTIF" size="20"></td>
         </td>
@@ -89,7 +85,7 @@ function init_repeated_subtree(event) {
 <div class="TN_node"
     repeat="partie" repeat-prefix="proc"
     onRepeat="init_repeated_subtree">
-  <span class="TN_label">Partie #{partie.ix}</span>
+  <span class="TN_label">Partie #{partie.count}</span>
   <div class="TN_content">
      <table>
        <tr><td>Rôle</td>
@@ -110,7 +106,7 @@ function init_repeated_subtree(event) {
        <tr><td>Avocats</td>
           <td><table>
                <tr repeat="avoc">
-                 <td>#{avoc.ix}</td>
+                 <td>#{avoc.count}</td>
                  <td><input name="#{avoc.path}.CLE_AVOC"></td>
                </tr>
              </table>

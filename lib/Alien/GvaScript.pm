@@ -5,7 +5,7 @@ use warnings;
 use File::Copy qw(copy);
 use File::Path qw(mkpath);
 
-our $VERSION = '1.10';
+our $VERSION = '1.11';
 
 
 sub path {
@@ -60,10 +60,12 @@ It is built on top of the B<prototype>
 object-oriented javascript framework (L<http://prototype.conio.net>)
 and offers a number of extensions and widgets, such as 
 keymap handling, application-specific events, 
-autocompletion on input field, and a tree navigator 
---- see L<Alien::GvaScript::Intro>.
+autocompletion on input field, tree navigation, and
+forms with autofocus and repeated sections.
+These functionalities are described in separate
+documentation pages (see L<Alien::GvaScript::Intro>).
 
-GvaScript is distributed using Perl  tools, but the actual
+GvaScript is distributed using Perl tools, but the actual
 content of the library is pure javascript; hence its 
 location in the Alien namespace (see the L<Alien> manifesto).
 
@@ -127,6 +129,8 @@ Copies GvaScript files into the directory supplied as argument
 Laurent Dami, C<< <laurent.d...@etat.ge.ch> >>
 
 Jean_Christophe Durand, C<< <jean-christophe.d.....@etat.ge.ch> >>
+
+Sébastien Cuendet, C<< <sebastien.c.....@etat.ge.ch> >>
 
 =head1 BUGS
 

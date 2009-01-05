@@ -1,23 +1,17 @@
-/* 
-TODO
+/* TODO
 
-  - submit
-
-     enctype attr
-     after_submit:
-        - replace document
-        - replace values
+   - submit attrs on buttons
+       - action / method / enctype / replace / target / novalidate
+  - after_submit:
+        - 204 NO CONTENT : leave doc, apply metadata
+        - 205 RESET CONTENT : reset form
+        - replace="document" (new page)
+        - replace="values" (fill form with new tree)
         - relace element
         - others ?
-   - submit attrs on buttons
-       - action / method / enctype / replace / target
-
-  - "onreceive" event (response after submit)
-
-  - autofocus
+        - "onreceive" event (response after submit)
 
   - check prototype.js serialize on multivalues
-
 */
 
 GvaScript.Form = {
@@ -26,9 +20,7 @@ GvaScript.Form = {
     GvaScript.Repeat.init(form);
     if (tree)
       this.fill_from_tree(form, "", tree);
-
-    // TODO : enctype, onsubmit, etc.
-
+    this.autofocus(form);
   },
 
 
@@ -44,9 +36,6 @@ GvaScript.Form = {
 
   fill_from_tree : function(form, field_prefix, tree) {
     form = $(form);
-    if (!form)
-      return;
-
     for (var key in tree) {
       if (!tree.hasOwnProperty(key)) 
         continue;
@@ -82,10 +71,10 @@ GvaScript.Form = {
 
 
   _fill_from_array: function(form, field_prefix, array) {
-    for (var i=1; i < array.length; i++) {
+    for (var i=0; i < array.length; i++) {
       var new_prefix = field_prefix + "." + i;
 
-      // if form has a named element, fill it
+      // if form has a corresponding named element, fill it
       var elem = form[new_prefix];
       if (elem)
         this._fill_from_value(elem, array[i]);
@@ -100,10 +89,7 @@ GvaScript.Form = {
         if (!elem) { 
           var placeholder = $(field_prefix + ".placeholder");
           if (placeholder && placeholder.repeat) {
-            while (placeholder.repeat.count < i
-                   && placeholder.repeat.count < placeholder.repeat.max) {
-              GvaScript.Repeat.add(placeholder);
-            }
+            GvaScript.Repeat.add(placeholder, i + 1 - placeholder.repeat.count);
             elem = $(new_prefix);
           }
         }
@@ -118,43 +104,49 @@ GvaScript.Form = {
 
 
   _fill_from_value: function(elem, val) {
-    
-    if (!(val instanceof Array)) 
-      val = [val]; // force into an array
+        // IMPLEMENTATION NOTE : Form.Element.setValue() is quite similar,
+        // but our treatment of arrays is different, so we have to reimplement
 
-    if (elem.length !== undefined) { // if elem is a collection
-      for (var i=0; i < elem.length; i++) {
-        this._fill_from_value(elem.item(i), val);
-      }
-    }
-    else { // if elem is a single node
-      switch (elem.type) {
-        case "checkbox" :
-        case "radio":
-          elem.checked = val.include(elem.value);
-          break;
+    // force val into an array
+    if (!(val instanceof Array)) val = [val]; 
 
-        case "text" :
-        case "textarea" :
-        case "hidden" :
-          elem.value = val.join(",");
-          break;
+    // get element type (might be a node list, which we call "collection")
+    var elem_type = elem.type 
+                 || (elem.length !== undefined ? "collection" : "unknown");
 
-        case "select-one" :
-        case "select-multiple" :
-          $A(elem.options).each(function(opt){
-            opt.selected = val.include(opt.value);
-          });
-          break;
+    switch (elem_type) {
+      case "collection":
+        for (var i=0; i < elem.length; i++) {
+          this._fill_from_value(elem.item(i), val);
+        }
+        break;
 
-        default:
-          alert("unexpected elem type : " + elem.type);
-      } // end switch
-    } // end if
+      case "checkbox" :
+      case "radio":
+        elem.checked = val.include(elem.value);
+        break;
+
+      case "text" :
+      case "textarea" :
+      case "hidden" :
+        elem.value = val.join(",");
+        break;
+
+      case "select-one" :
+      case "select-multiple" :
+        $A(elem.options).each(function(opt){
+          var opt_value = Form.Element.Serializers.optionValue(opt);
+          opt.selected = val.include(opt_value);
+        });
+        break;
+
+      default:
+        throw new Error("unexpected elem type : " + elem.type);
+    } // end switch
   }, // end function
 
 
-  // javascript version of CGI::Expand::expand_hash
+  // javascript version of Perl  CGI::Expand::expand_hash
   expand_hash: function(flat_hash) {
     var tree = {};
 
@@ -178,6 +170,54 @@ GvaScript.Form = {
       loop.tree[loop.key] = flat_hash[k];
     }
     return tree.root;
+  }, 
+
+
+  add: function(repeat_name, count) {
+    var n_blocks = GvaScript.Repeat.add(repeat_name, count);
+    var last_block = repeat_name + "." + (n_blocks - 1);
+    this.autofocus(last_block);
+  },
+
+  remove: function(repetition_block) {
+    // find element and repeat info
+    var elem = $(repetition_block);
+    elem.id.match(/(.*)\.(\d+)$/);
+    var repeat_name = RegExp.$1;
+    var remove_ix   = RegExp.$2;
+    var form        = elem.up('form');
+
+    // get form data corresponding to the repeated section (should be an array)
+    var tree  = this.to_tree(form);
+    var parts = repeat_name.split(/\./);
+    for (var i = 0 ; i < parts.length; i++) {
+      if (!tree) break;
+      tree = tree[parts[i]];
+    }
+    
+    // remove rows below, and shift rows above
+    if (tree && tree instanceof Array) {
+      tree.splice(remove_ix, 1);
+      for (var i = 0 ; i < remove_ix; i++) {
+        delete tree[i];
+      }
+    }
+
+    // call Repeat.remove() to remove from DOM
+    GvaScript.Repeat.remove(repetition_block);
+
+    // re-populate blocks above
+    this.fill_from_tree(form, repeat_name, tree);
+  },
+
+  autofocus: function(elem) {
+    elem = $(elem);
+    if (elem) {
+      var target = elem.down('[autofocus]');
+      // TODO : check if target is visible
+      if (target) try {target.focus()} 
+                     catch(e){}
+    }
   }
 
 

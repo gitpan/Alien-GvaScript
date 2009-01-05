@@ -1,6 +1,6 @@
 ---
 name: Alien-GvaScript
-version: 1.10
+version: 1.11
 author:
   - 'Laurent Dami <laurent.dami@justice.ge.ch>'
 abstract: Gva extension to the prototype javascript framework
@@ -19,7 +19,7 @@ recommends:
 provides:
   Alien::GvaScript:
     file: lib/Alien/GvaScript.pm
-    version: 1.10
+    version: 1.11
 generated_by: Module::Build version 0.2808
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.2.html

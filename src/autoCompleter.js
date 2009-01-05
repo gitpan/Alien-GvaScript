@@ -113,6 +113,9 @@ GvaScript.AutoCompleter.prototype = {
                                              stopPropagation:false});
       Element.observe(elem, "blur", this.reuse.onblur);
       Element.observe(elem, "click", this.reuse.onclick);
+
+      // prevent browser builtin autocomplete behaviour
+      elem.setAttribute("autocomplete", "off");
     }
 
     // initialize time stamps
@@ -514,12 +517,14 @@ GvaScript.AutoCompleter.prototype = {
     // insert into DOM
     document.body.appendChild(div);
 
-    // simulate maxHeight/minWidth on MSIE (must be AFTER appendChild())
-    if (navigator.appVersion.match(/\bMSIE\b/)) {
+    // simulate maxHeight/minWidth on old MSIE (must be AFTER appendChild())
+    if (navigator.userAgent.match(/\bMSIE [456]\b/)) {
       div.style.setExpression("height", 
-        "this.scrollHeight>" + this.options.maxHeight + "?" + this.options.maxHeight + ":'auto'");
+        "this.scrollHeight>" + this.options.maxHeight + "?" 
+                             + this.options.maxHeight + ":'auto'");
       div.style.setExpression("width", 
-        "this.scrollWidth<" + this.options.minWidth + "?" + this.options.minWidth + ":'auto'");
+        "this.scrollWidth<" + this.options.minWidth + "?" 
+                            + this.options.minWidth + ":'auto'");
     }
 
     return this.dropdownDiv = div;

@@ -60,6 +60,7 @@ lib/Alien/GvaScript/html/toc.html
 lib/Alien/GvaScript/html/TreeNavigator.html
 lib/Alien/GvaScript/Intro.pod
 lib/Alien/GvaScript/KeyMap.pod
+lib/Alien/GvaScript/lib/ajax_loaded.png
 lib/Alien/GvaScript/lib/ajax_loading_small.gif
 lib/Alien/GvaScript/lib/autocomplete.gif
 lib/Alien/GvaScript/lib/dot.gif
@@ -80,9 +81,11 @@ src/choiceList.js
 src/event.js
 src/form.js
 src/keyMap.js
+src/msie_console.js
 src/protoExtensions.js
 src/repeat.js
 src/treeNavigator.js
+src/treeNavigator.js.bck
 t/00-load.t
 t/pod-coverage.t
 t/pod.t

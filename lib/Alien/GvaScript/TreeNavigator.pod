@@ -589,6 +589,7 @@ to another desktop window.
 triggered when a node is opened or
 closed
 
+
 =head4 C<BeforeLoadContent> / C<AfterLoadContent>
 
 triggered before/after a node's content

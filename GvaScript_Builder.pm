@@ -45,6 +45,7 @@ sub generate_js { # concatenates sources below into "GvaScript.js"
  *
  *  Authors: Laurent Dami            <laurent.d...\@etat.ge.ch>
  *           Jean-Christophe Durand  <jean-christophe.d.....\@etat.ge.ch>
+ *           Sébastien Cuendet       <sebastien.c.....\@etat.ge.ch>
  *  LICENSE
  *  This library is free software, you can redistribute it and/or modify
  *  it under the same terms as Perl's artistic license.

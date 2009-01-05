@@ -4,12 +4,61 @@ GvaScript.Form - Helper functions for forms
 
 =head1 SYNOPSIS
 
+  <form id="my_form">
+    <div repeat="foo">
+      <h2>Foo #{foo.count}</h2>
+      This is the repeated foo section
+      <table>
+        <tr repeat="bar">
+          <td>Item #{bar.count}</td>
+          <td><input name="#{bar.path}.buz"></td>
+          <td><button onclick="GvaScript.Form.remove('#{bar.path}')">
+                Remove this row
+              </button></td>
+        </tr>
+      </table>
+       <button onclick="GvaScript.Form.add('#{foo.path}.bar')">
+          Add a bar
+       </button>
+    </div>  
+    <button onclick="GvaScript.Form.add('foo')">Add a foo</button>
+  </form>
+
+  <script>
+    GvaScript.Form.init(document.body);
+  </script
+
+
 =head1 DESCRIPTION
 
-This component helps to manage HTML forms with 
+This module of L<Alien::GvaScript> manages forms with
 hierarchical fields and dynamically repeated sections.
-[explain]
+It works in close collaboration with  L<Alien::GvaScript::Repeat>.
 
+The design is partially inspired by the C<Web Forms 2.0> proposal
+(L<http://www.whatwg.org/specs/web-forms/current-work/>), but is 
+not an attempt to implement the proposed specification: there are
+some differences both in syntax and in semantics.
+
+
+=head1 HTML
+
+=head2 Markup of repeat elements
+
+Repeat elements may occur outside of forms and therefore 
+are described in a separate document; 
+see L<Alien::GvaScript::Repeat>.
+
+=head2 Autofocus
+
+The L</init> method inspects all form elements for an
+C<autofocus> attribute; the first element that possesses
+this attribute automatically receives focus.
+
+Similarly, when a repetition block is added into 
+the form through the L</add> method, the first
+element within that repetition block that possesses
+an C<autofocus> attribute automatically receives focus.
 
 =head1 METHODS
 
@@ -17,40 +66,69 @@ hierarchical fields and dynamically repeated sections.
 
    GvaScript.Form.init(form, initial_tree)
 
-C<form> is the id of a form (or directly the DOM element). Optional C<initial_tree> is
-a javascript nested datastructure containing initial values for fields.
+C<form> is the id of a form (or directly the DOM element).  Optional
+C<initial_tree> is a javascript nested datastructure containing
+initial values for fields, that will be passed to the 
+L</fill_from_tree> method.
 
-If the initial tree contains repeated data sets, then the corresponding
-repeated sections in the form are dynamically expanded (see L</fill_from_tree>).
-
-[explain more]
 
 =head2 to_hash
 
   var flat_hash = GvaScript.Form.to_hash(form);
 
-Inspects the contents of all fields in form and 
+Inspects the contents of all fields in C<form> and 
 returns a flat hash of pairs (key-value).
 
 =head2 to_tree
 
   var tree = GvaScript.Form.to_tree(form);
 
-Inspects the contents of all fields in form and 
+Inspects the contents of all fields in C<form> and 
 returns a data tree, were dotted names in form names
-are expanded into sub-arrays or sub-hashes.
+are expanded into sub-arrays or sub-hashes. So for example 
+if the form looks like
+
+  <input name="father.firstname"> <input name="father.lastname"><br>
+  <input name="mother.firstname"> <input name="mother.lastname"><br>
+  <div repeat="child" repeat-start="1">
+    <input name="#{child.path}.firstname"><br>
+  </div>
+
+and if that form has been expanded with 3 repetition blocks
+for children, the resulting tree would be
+
+  { "father" : {"firstname" : ..., "lastname": ...},
+    "mother" : {"firstname" : ..., "lastname": ...},
+    "child"  : [ {"firstname": ...},
+                 {"firstname": ...},
+                 {"firstname": ...} ] }
+
 
 =head2 fill_from_tree
 
   GvaScript.Form.fill_from_tree(form, field_prefix, tree);
 
-Fills the form from values found in C<tree>. 
+Fills the form from values found in C<tree> (this is the 
+reverse of the L</to_tree> operation).
 Optional C<field_prefix> is prepended to key names in C<tree> for
 finding the corresponding form fields.
-If the initial tree contains repeated data sets, then the corresponding
-repeated sections in the form are dynamically expanded.
 
-[explain more]
+The method walks through nested subtrees in C<tree>: the sequence
+of keys leading to a leaf is concatenated into a flat string, with dot 
+separators, and if the form has a corresponding input element,
+the value of that element is set to the value of the leaf.
+Furthermore, if the initial tree contains repeated data sets
+(array subtrees), and if the form contains repeat elements
+with the same path, then new repetition blocks are 
+dynamically created to match the number of items in the array:
+so if the form above is filled with the following tree
+
+  { "child"  : [ {"firstname": "Abel"},
+                 {"firstname": "Bob"},
+                 {"firstname": "Cod"},
+                 {"firstname": "Dave"}, ] }
+
+then four repetition blocks will automatically created in the form.
 
 
 =head2 expand_hash
@@ -62,4 +140,37 @@ structure, by splitting keys on dots.
 The idea and algorithm come from L<CGI::Expand/expand_hash>.
 
 
+=head2 add
 
+  GvaScript.Form.add(repeat_name, count);
+
+Creates one or several new repetition blocks.  The parameter C<count>
+is optional and defaults to 1.  Focus is automatically given to the
+first input element in the last repetition block that has an
+C<autofocus> attribute (if any).
+
+See L<Alien::GvaScript::Repeat/add> for more explanations on
+the C<add> operation.
+
+=head2 remove
+
+  GvaScript.Form.remove(repeat_block);
+
+Removes a repetition block from the DOM. The argument is either
+a DOM element or a string containing the element id.
+
+All repetition blocks above the removed block are renumbered,
+leaving no hole in the index sequence. To do so, these
+blocks are also removed from the DOM, and then added
+again through the L</add> method. This operation is implemented
+by L<Alien::GvaScript::Repeat/remove>.
+
+The recreated blocks are then re-populated with their
+previous input values.
+
+=head2 autofocus
+
+  GvaScript.Form.autofocus(element);
+
+Inspects DOM children of  C<element>, and gives focus to the 
+first child that has an C<autofocus> attribute.

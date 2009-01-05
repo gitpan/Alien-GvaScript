@@ -23,48 +23,61 @@ Geneva Cointrin International Airport).
 It is built on top of the B<prototype>
 object-oriented javascript framework (L<http://prototype.conio.net>).
 
-It contains three core components :
+It contains four core components :
 
 =over
 
 =item * 
 
-L<protoExtensions|Alien::GvaScript::ProtoExtensions> : 
+L<Alien::GvaScript::ProtoExtensions> : 
 some extensions to the prototype javascript framework
 (mainly walking the DOM searching for collections of classnames).
 
 =item * 
 
-L<event|Alien::GvaScript::Event> : 
+L<Alien::GvaScript::Event> : 
 registering and firing application-specific events (in addition
 to the standard W3C event model)
 
 =item *
 
-L<keyMap|Alien::GvaScript::KeyMap> : 
+L<Alien::GvaScript::KeyMap> : 
 managing maps of handlers for key events (similar
 in spirit to Emacs keymaps)
 
+=item *
+
+L<Alien::GvaScript::Repeat> : 
+managing repeated sections
+
+
 =back
 
-and three widgets:
+and four widgets:
 
 =over
 
 =item *
 
-L<choiceList|Alien::GvaScript::ChoiceList> : 
+L<Alien::GvaScript::ChoiceList> : 
 dropdown list of choices with navigation 
 
 =item *
 
-L<autoCompleter|Alien::GvaScript::AutoCompleter> : 
+L<Alien::GvaScript::AutoCompleter> : 
 autocompletion on form input fields
 
 =item *
 
-L<treeNavigator|Alien::GvaScript::TreeNavigator> : 
+L<Alien::GvaScript::TreeNavigator> : 
 navigation in a tree structure, opening and closing nodes
+
+=item *
+
+L<Alien::GvaScript::Form> : 
+various extensions to HTML forms (working with data trees
+and repeated sections, automatic focus, etc.)
+
 
 =back
 
@@ -107,6 +120,8 @@ version 1.5.0 or higher
 Laurent Dami,  C<< <laurent.d...@etat.ge.ch> >>
 
 Jean-Christophe Durand,  C<< <jean-christophe.d.....@etat.ge.ch> >>
+
+Sébastien Cuendet,  C<< <sebastien.c.....@etat.ge.ch> >>
 
 
 =head1 LICENSE

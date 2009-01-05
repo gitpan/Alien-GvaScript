@@ -1,3 +1,7 @@
+/* TODO :
+    - invent syntax for IF blocks (first/last, odd/even)
+*/
+
 GvaScript.Repeat = {
 
 //-----------------------------------------------------
@@ -8,50 +12,80 @@ GvaScript.Repeat = {
     this._init_repeat_elements(elem);
   },
 
-  add: function(placeholder) {
+  add: function(repeat_name, count) {
+    if (count == undefined) count = 1;
 
-    // find the placeholder element
-    if (typeof placeholder == "string" && !placeholder.match(/.placeholder$/))
-        placeholder += ".placeholder";
-    placeholder = $(placeholder);
-
-    // repeat properties
-    var repeat = placeholder.repeat;
-
-    // won't add beyond max
-    if (repeat.count >= repeat.max)
-      return;
-
-    // increment the repetition block count and update path
-    var path_ini = repeat.path; // for restoring later; see end of block
-    repeat.ix    = ++repeat.count;
-    repeat.path  = repeat.path + "." + repeat.ix;
+    // get repeat properties
+    var placeholder = this._find_placeholder(repeat_name);
+    var repeat      = placeholder.repeat;
+    var path_ini    = repeat.path;
 
     // regex substitutions to build html for the new repetition block (can't
-    // do it with Template.replace() because working in only one namespace)
-    var regex = new RegExp("#{" + repeat.name + "\\.(\\w+)}", "g");
-    var repl  = function ($0, $1){return repeat[$1] || ""};
-    var html  = repeat.template.replace(regex, repl);
+    // use Template.replace() because we need structured namespaces)
+    var regex       = new RegExp("#{" + repeat.name + "\\.(\\w+)}", "g");
+    var replacement = function ($0, $1){var s = repeat[$1]; 
+                                        return s == undefined ? "" : s};
 
-    // insert into the DOM
-    placeholder.insert({before:html});
-    var insertion_block = $(repeat.path);
+    while (count-- > 0 && repeat.count < repeat.max) {
+      // increment the repetition block count and update path
+      repeat.ix    = repeat.count++;  // invariant: count == ix + 1
+      repeat.path  = path_ini + "." + repeat.ix;
+
+      // compute the HTML
+      var html  = repeat.template.replace(regex, replacement);
+
+      // insert into the DOM
+      placeholder.insert({before:html});
+      var insertion_block = $(repeat.path);
   
-    // repetition block gets an event
-    placeholder.fireEvent("Repeat", insertion_block);
+      // repetition block gets an event
+      placeholder.fireEvent("Add", insertion_block);
 
-    // deal with nested repeated sections
-    this._init_repeat_elements(insertion_block, repeat.path);
+      // deal with nested repeated sections
+      this._init_repeat_elements(insertion_block, repeat.path);
 
-    // restore initial path, because unlike Perl, JS has no "local" :-( 
-    repeat.path = path_ini;
+      // restore initial path
+      repeat.path = path_ini;
+    }
+
+    return repeat.count;
   },
+
+  remove: function(repetition_block) {
+    // find element, placeholder and repeat info
+    var elem = $(repetition_block);
+    elem.id.match(/(.*)\.(\d+)$/);
+    var repeat_name = RegExp.$1;
+    var remove_ix   = RegExp.$2;
+    var placeholder = this._find_placeholder(repeat_name);
+    var max         = placeholder.repeat.count;
+
+    // remove the repeat block and all blocks above
+    for (var i = remove_ix; i < max; i++) {
+      var block = $(repeat_name + "." + i);
+      placeholder.fireEvent("Remove", block);
+      block.remove();
+      placeholder.repeat.count -= 1;
+    }        
+
+    // add again the blocks above (which will be renumbered)
+    var n_add = max - remove_ix - 1;
+    if (n_add > 0) this.add(placeholder, n_add);
+  },
+
 
 
 //-----------------------------------------------------
 // Private methods
 //-----------------------------------------------------
 
+  _find_placeholder: function(name) {
+    if (typeof name == "string" && !name.match(/.placeholder$/))
+        name += ".placeholder";
+    var placeholder = $(name); 
+    if (!placeholder) throw new Error("no such element: " + name);
+    return placeholder;
+  },
 
   _init_repeat_elements: function(elem, path) {
     elem = $(elem);
@@ -78,11 +112,15 @@ GvaScript.Repeat = {
     element = $(element);
     path = path || element.getAttribute('repeat-prefix');
 
+    // number of initial repetition blocks
+    var n_blocks = element.getAttribute('repeat-start');
+    if (n_blocks == undefined) n_blocks = 1;
+
     // hash to hold all properties of the repeat element
     var repeat = {};
     repeat.name  = element.getAttribute('repeat');
-    repeat.min   = element.getAttribute('repeat-min') || 1,
-    repeat.max   = element.getAttribute('repeat-max') || 99,
+    repeat.min   = element.getAttribute('repeat-min') || 0;
+    repeat.max   = element.getAttribute('repeat-max') || 99;
     repeat.count = 0;
     repeat.path  = (path ? path + "." : "") + repeat.name;
 
@@ -101,30 +139,24 @@ GvaScript.Repeat = {
       element.id = "#{" + repeat.name + ".path}";
 
       // b) remove "repeat*" attributes (don't want them in the template)
-      for (var prop in element) {
-        if (prop.match(/^repeat/i))  element.removeAttribute(prop, 0);
+      var attrs = element.attributes;
+      var repeat_attrs = [];
+      for (var i = 0; i < attrs.length; i++) {
+        var name = attrs[i].name;
+        if (name.match(/^repeat/i)) repeat_attrs.push(name);
       }
+      repeat_attrs.each(function(name){element.removeAttribute(name, 0)});
 
-      // c) remove from DOM and keep it as a template string
-      // outerHTML would be simpler, but not supported by Gecko :-((
+      // c) keep it as a template string and remove from DOM
       repeat.template = Element.outerHTML(element);
       element.remove();
-
-//       var div = document.createElement("div");
-//       element = 
-//       div.appendChild(element);
-//       repeat.template = div.innerHTML;
-
     }
 
     // store all properties within the placeholder
     placeholder.repeat = repeat;
 
-    // initial repetition blocks 
-    var n_start = element.getAttribute('repeat-start') || repeat.min;
-    for (var i = 1; i <= n_start; i++) {
-      this.add(placeholder);
-    }
+    // create initial repetition blocks 
+    this.add(placeholder, n_blocks);
   }
 
 };

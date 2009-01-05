@@ -94,37 +94,46 @@ born in Geneva, Switzerland (<code>GVA</code> is the IATA code for
 Geneva Cointrin International Airport). 
 It is built on top of the <b>prototype</b>
 object-oriented javascript framework (<a href="http://prototype.conio.net">http://prototype.conio.net</a>).</p>
-<p>It contains three core components :</p>
+<p>It contains four core components :</p>
 <ul>
 <li>
-<p><i>protoExtensions</i> : 
+<p><i>Alien::GvaScript::ProtoExtensions</i> : 
 some extensions to the prototype javascript framework
 (mainly walking the DOM searching for collections of classnames).</p>
 </li>
 <li>
-<p><i>event</i> : 
+<p><i>Alien::GvaScript::Event</i> : 
 registering and firing application-specific events (in addition
 to the standard W3C event model)</p>
 </li>
 <li>
-<p><i>keyMap</i> : 
+<p><i>Alien::GvaScript::KeyMap</i> : 
 managing maps of handlers for key events (similar
 in spirit to Emacs keymaps)</p>
 </li>
+<li>
+<p><i>Alien::GvaScript::Repeat</i> : 
+managing repeated sections</p>
+</li>
 </ul>
-<p>and three widgets:</p>
+<p>and four widgets:</p>
 <ul>
 <li>
-<p><i>choiceList</i> : 
+<p><i>Alien::GvaScript::ChoiceList</i> : 
 dropdown list of choices with navigation </p>
 </li>
 <li>
-<p><i>autoCompleter</i> : 
+<p><i>Alien::GvaScript::AutoCompleter</i> : 
 autocompletion on form input fields</p>
 </li>
 <li>
-<p><i>treeNavigator</i> : 
+<p><i>Alien::GvaScript::TreeNavigator</i> : 
 navigation in a tree structure, opening and closing nodes</p>
+</li>
+<li>
+<p><i>Alien::GvaScript::Form</i> : 
+various extensions to HTML forms (working with data trees
+and repeated sections, automatic focus, etc.)</p>
 </li>
 </ul>
 
@@ -165,6 +174,7 @@ version 1.5.0 or higher</p>
     <div class="TN_content">
       <p>Laurent Dami,  <code>&lt;laurent.d...@etat.ge.ch&gt;</code></p>
 <p>Jean-Christophe Durand,  <code>&lt;jean-christophe.d.....@etat.ge.ch&gt;</code></p>
+<p>Sébastien Cuendet,  <code>&lt;sebastien.c.....@etat.ge.ch&gt;</code></p>
 
     </div>
   </div>
