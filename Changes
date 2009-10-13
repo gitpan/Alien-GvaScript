@@ -1,5 +1,16 @@
 Revision history for Alien-GvaScript
 
+
+1.18 13.10.2009
+  - fix some minor doc glitches released in 1.17
+
+1.17 13.10.2009
+  - major revision from Mona Remlawi
+  - new Grid component
+  - new CustomButtons component
+  - new Paginator component
+  - new test suite
+
 1.11
   - added Seb in author list
   - repeat: ix starts at 0, count starts at 1

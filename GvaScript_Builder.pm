@@ -50,9 +50,10 @@ sub generate_js { # concatenates sources below into "GvaScript.js"
  * GvaScript - Javascript framework born in Geneva.
  *
  *  Authors: Laurent Dami            <laurent.d...\@etat.ge.ch>
- *           Jean-Christophe Durand  <jean-christophe.d.....\@etat.ge.ch>
- *           Sébastien Cuendet       <sebastien.c.....\@etat.ge.ch>
  *           Mona Remlawi            <mona.rem....\@etat.ge.ch>
+ *           Jean-Christophe Durand
+ *           Sébastien Cuendet
+
  *  LICENSE
  *  This library is free software, you can redistribute it and/or modify
  *  it under the same terms as Perl's artistic license.
@@ -107,7 +108,6 @@ sub generate_googlewiki {# regenerate wiki doc from pod sources
   # convert each file
   foreach my $podfile (@podfiles) {
 
-    $DB::single = 1;
     my $parser = Pod::Simple::Wiki->new('googlecode');
     $podfile =~ m[^lib/Alien/GvaScript/(.*)\.pod];
     my $wikifile = "$dir/$1.wiki";

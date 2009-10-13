@@ -5,7 +5,7 @@ use warnings;
 use File::Copy qw(copy);
 use File::Path qw(mkpath);
 
-our $VERSION = '1.17';
+our $VERSION = '1.18';
 
 
 sub path {
@@ -57,7 +57,7 @@ born in Geneva, Switzerland (C<GVA> is the IATA code for
 Geneva Cointrin International Airport). 
 
 It is built on top of the B<prototype>
-object-oriented javascript framework (L<http://prototype.conio.net>)
+object-oriented javascript framework (L<http://www.prototypejs.org>)
 and offers a number of extensions and widgets, such as 
 keymap handling, application-specific events, 
 autocompletion on input field, tree navigation, and
@@ -128,9 +128,11 @@ Copies GvaScript files into the directory supplied as argument
 
 Laurent Dami, C<< <laurent.d...@etat.ge.ch> >>
 
-Jean_Christophe Durand, C<< <jean-christophe.d.....@etat.ge.ch> >>
+Mona Remlawi, C<< <mona.r...@etat.ge.ch> >>
 
-Sébastien Cuendet, C<< <sebastien.c.....@etat.ge.ch> >>
+Jean_Christophe Durand
+
+Sébastien Cuendet
 
 =head1 BUGS
 
@@ -175,7 +177,7 @@ L<Alien::scriptaculous> by Graham TerMarsch.
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2007 Laurent Dami, Jean-Christophe Durand, all rights reserved.
+Copyright 2007, 2008, 2009, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
