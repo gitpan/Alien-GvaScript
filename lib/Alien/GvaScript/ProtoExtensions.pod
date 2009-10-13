@@ -13,6 +13,13 @@ GvaScript.protoExtensions - Extensions to prototype.js
 
   this.options = Class.checkOptions(defaultOptions, receivedOptions);
 
+  Element.register(elem, 'input.active', 'mouseover', function(e) {
+    e._target.addClassName('hover');
+  });
+  Element.unregister(elem, 'input.active', 'mouseover');
+
+  Element.store(elem, key, value);
+  Element.retrieve(elem, key, default);
 
 =head1 DESCRIPTION
 
@@ -21,7 +28,56 @@ prototype.js.
 
 =head1 METHODS
 
+=head2 Events delegation
+
+  Will be a part of prototype's core distribution starting version 1.7
+  as discussed here 
+  [https://prototype.lighthouseapp.com/projects/8886/tickets/435-eventdelegate-and-elementmethodsdelegate]
+
+=head2 Prototype.getJSON
+
+  Prototype.getJSON(url, callback)
+
+based on: getJSON function by Juriy Zaytsev L<http://github.com/kangax/protolicious/tree/master/get_json.js>
+
+A method to temporarily load JSON data (ideally hosted on a different domain and accessible via JSONP service) and send it over to callback method when ready.
+
+
+=head2 Hash utilities
+
+=head3 Hash.expand
+
+  var tree = Hash.expand(flat_hash);
+
+Transforms a flat structure of key-value pairs into a nested tree
+structure, by splitting keys on dots.
+The idea and algorithm come from L<CGI::Expand/expand_hash>.
+
+  Hash.expand({a: '...', b.0.x: '...', b.0.y: '...', b.1.x: '...', b.1.y: '...'}) =>
+  {a: '...', b: [{x: '...', y: '...'}, {x: '...', y: '...'}]}
+
+=head3 Hash.flatten
+
+The exact opposite of Hash.expand
+
+Transforms a nested tree structure into a flat hash of key-value pairs
+where nested keys are joined by a dot.
+
+=head2 String extensions
+
+=head3 chomp
+
+Strips any trailing line breaks (\r\n) from a String.
+
 =head2 Element extensions
+
+=head3 flash
+
+only applied to ['SPAN', 'DIV', 'INPUT', 'BUTTON', 'TEXTAREA', 'A'] elements.
+
+used to set a classname to the element for a brief moment of time.
+
+  Element.flash(elem, {duration: I<time_mes>, classname: I<classname_to_set>});
 
 =head3 hasAnyClass
 
@@ -85,7 +141,13 @@ the native C<outerHTML> property, if present; otherwise
 constructs a string from tag name, attributes and 
 innerHTML property.
    
+=head2 Form.Element extensions
 
+=head3 setValue
+
+Form.Element.setValue method is wrapped to fire a
+'value:change' custom event with oldvalue and newvalue
+properties set in the event.memo
 
 =head2 Event extensions
 
@@ -146,3 +208,19 @@ C<defaultOptions>).
 
 Checks if C<cond> is true, and if not, generates an error 
 with message C<msg>.
+
+=head2 CSSPREFIX
+
+  CSSPREFIX ();
+
+Returns value of C<CSS_PREFIX> global variable if found. If not, default to 'gva'.
+
+This value is used to prefix css classnames of html elements that are derived in some GvaScript classes.
+
+=head2 RegEx.escape
+
+  RegEx.escape (exp);
+
+Returns the "escaped" value of argument C<exp> to be evaluated as a regular expression.
+
+Characters that are escaped are C<.*+?|()[]{}\>

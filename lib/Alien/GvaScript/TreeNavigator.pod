@@ -44,6 +44,12 @@ the arrow keys or the C<TAB>
 key. To see the whole page at once (for example for
 printing), press the C<S<Ctrl-keypad *>> key.
 
+=head2 DESTRUCTOR
+
+  mytreenavigator.destroy();
+
+This method will remove all handlers assigned to tree navigator.
+Call this method when the tree navigator element is removed from the DOM.
 
 =head2 Tree structure
 
@@ -187,19 +193,19 @@ if closed, open the node; if already opened, pass focus to the next
 item (maybe the next node, or another tabindex-enabled HTML element,
 such as a form control).
 
-=item C<E<uarr>>
+=item C<ARROW_UP>
 
 move to previous displayed node
 
-=item C<E<darr>>
+=item C<ARROW_DOWN>
 
 move to next displayed node
 
-=item C<E<larr>>
+=item C<ARROW_LEFT>
 
 if open, close the node; if already closed, move to parent node
 
-=item C<E<rarr>>
+=item C<ARROW_RIGHT>
 
 if closed, open the node; if already open, move to next subnode
 
@@ -235,6 +241,14 @@ fire the C<Ping> event
 
 close all nodes at level of the specified digit, and open all nodes
 above
+
+=item C<char(s)>
+
+Tree navigator supports the 'Find As You Type' feature that allows
+quick node navigation when you type a series of characters.
+This feature is enabled by default whenever any node is active.
+The series of characters are cleared after an 800ms timeout of no character input.
+After that, a new search will be effective.
 
 =back
 
@@ -324,7 +338,7 @@ Color for "flashing", expressed as standard CSS color; default is red.
 =head4 selectOnButtonClick
 
 If true, clicking on a "+/-" button next to a label will not only open
-or close the node, but will also select that node; default is false.
+or close the node, but will also select that node; default is true.
 
 =head4 noPingOnFirstClick
 
@@ -474,6 +488,10 @@ the page), and opens all nodes found on the way
 If there was a selected node, unselect it; then select the argument
 node. The argument can be C<null>, in which case the tree no longer
 has any selected node.
+
+=item C<scrollTo(node)>
+
+Positions the node in the middle of the screen
 
 =item C<flash(node, duration, color)>
 

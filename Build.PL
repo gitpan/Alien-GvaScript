@@ -24,5 +24,5 @@ my $builder = GvaScript_Builder->new(
 
 
 # include dhtml files in the distribution
-$builder->add_build_element($_) for qw/html js css gif/;
+$builder->add_build_element($_) for qw/html js css gif png/;
 $builder->create_build_script();

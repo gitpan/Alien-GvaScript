@@ -1,0 +1,614 @@
+<html>
+<head>
+  <script src="../../lib/prototype.js"></script>
+  <script src="../../lib/GvaScript.js"></script>
+  <link href="GvaScript_doc.css" rel="stylesheet" type="text/css">
+  <script>
+    document.observe('dom:loaded', function() { new GvaScript.TreeNavigator('TN_tree'); });
+    function jumpto_href(event) {
+      var label = event.controller.label(event.target);
+      if (label && label.tagName == "A") {
+        label.focus();
+        return Event.stopNone;
+      }
+    }
+  </script>
+</head>
+<body>
+<div id='TN_tree'>
+  <div class="TN_node">
+   <h1 class="TN_label">Window (http://prototype-window.xilinus.com/) Extension Class</h1>
+   <div class="TN_content">
+     <p><em>Utility methods and Class wrappers
+</em></p>
+     <div class="TN_node"  onPing="jumpto_href">
+       <h3 class="TN_label">Table of contents</h3>
+       <div class="TN_content">
+         <div class="TN_leaf">
+  <a class="TN_label" href="#NAME">NAME</a>
+  <div class="TN_content"></div>
+</div>
+<div class="TN_leaf">
+  <a class="TN_label" href="#SYNOPSIS">SYNOPSIS</a>
+  <div class="TN_content"></div>
+</div>
+<div class="TN_leaf">
+  <a class="TN_label" href="#DEPENDENCIES">DEPENDENCIES</a>
+  <div class="TN_content"></div>
+</div>
+<div class="TN_leaf">
+  <a class="TN_label" href="#DESCRIPTION">DESCRIPTION</a>
+  <div class="TN_content"></div>
+</div>
+<div class="TN_node">
+  <a class="TN_label" href="#Windows_Ext">Windows.Ext</a>
+  <div class="TN_content"><div class="TN_node">
+  <a class="TN_label" href="#Methods">Methods</a>
+  <div class="TN_content"><div class="TN_leaf">
+  <a class="TN_label" href="#Windows_Ext_relateWindows_parentWindowId_childWindowId_">Windows.Ext.relateWindows(parentWindowId, childWindowId)</a>
+  <div class="TN_content"></div>
+</div>
+<div class="TN_leaf">
+  <a class="TN_label" href="#Windows_Ext_handFocus_windowId_">Windows.Ext.handFocus(windowId)</a>
+  <div class="TN_content"></div>
+</div>
+<div class="TN_leaf">
+  <a class="TN_label" href="#Windows_Ext_hideWindow_windowId_">Windows.Ext.hideWindow(windowId)</a>
+  <div class="TN_content"></div>
+</div>
+<div class="TN_leaf">
+  <a class="TN_label" href="#Windows_Ext_destroyWindow_windowId_">Windows.Ext.destroyWindow(windowId)</a>
+  <div class="TN_content"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="TN_leaf">
+  <a class="TN_label" href="#Window_Ext_Options">Window.Ext Options</a>
+  <div class="TN_content"></div>
+</div>
+<div class="TN_node">
+  <a class="TN_label" href="#Window_Ext_Classes">Window.Ext Classes</a>
+  <div class="TN_content"><div class="TN_node">
+  <a class="TN_label" href="#Window_Ext_HTMLWindow">Window.Ext.HTMLWindow</a>
+  <div class="TN_content"><div class="TN_leaf">
+  <a class="TN_label" href="#Javascript">Javascript</a>
+  <div class="TN_content"></div>
+</div>
+</div>
+</div>
+<div class="TN_node">
+  <a class="TN_label" href="#Window_Ext_AJAXWindow">Window.Ext.AJAXWindow</a>
+  <div class="TN_content"><div class="TN_leaf">
+  <a class="TN_label" href="#Javascript">Javascript</a>
+  <div class="TN_content"></div>
+</div>
+</div>
+</div>
+<div class="TN_node">
+  <a class="TN_label" href="#Window_Ext_IFRAMEWindow">Window.Ext.IFRAMEWindow</a>
+  <div class="TN_content"><div class="TN_leaf">
+  <a class="TN_label" href="#Javascript">Javascript</a>
+  <div class="TN_content"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="TN_node">
+  <a class="TN_label" href="#Dialog_Ext_Utilities">Dialog.Ext Utilities</a>
+  <div class="TN_content"><div class="TN_node">
+  <a class="TN_label" href="#Dialog_Ext_Error_error_message_">Dialog.Ext.Error(error_message)</a>
+  <div class="TN_content"><div class="TN_leaf">
+  <a class="TN_label" href="#Javascript">Javascript</a>
+  <div class="TN_content"></div>
+</div>
+</div>
+</div>
+<div class="TN_node">
+  <a class="TN_label" href="#Dialog_Ext_Alert_alert_message_callback_">Dialog.Ext.Alert(alert_message, callback)</a>
+  <div class="TN_content"><div class="TN_leaf">
+  <a class="TN_label" href="#Javascript">Javascript</a>
+  <div class="TN_content"></div>
+</div>
+</div>
+</div>
+<div class="TN_node">
+  <a class="TN_label" href="#Dialog_Ext_Progress_message_callback_">Dialog.Ext.Progress(message, callback)</a>
+  <div class="TN_content"><div class="TN_leaf">
+  <a class="TN_label" href="#Javascript">Javascript</a>
+  <div class="TN_content"></div>
+</div>
+</div>
+</div>
+<div class="TN_node">
+  <a class="TN_label" href="#Dialog_Ext_Confirm_confirmation_message_ok_callback_cancel_callback_">Dialog.Ext.Confirm(confirmation_message, ok_callback, cancel_callback)</a>
+  <div class="TN_content"><div class="TN_leaf">
+  <a class="TN_label" href="#Javascript">Javascript</a>
+  <div class="TN_content"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+       </div>
+     </div>
+     <hr/>
+   </div>
+  </div>
+  <div class="TN_node" id="NAME">
+    <h2 class="TN_label">NAME</h2>
+    <div class="TN_content">
+      <p>Window (<a href="http://prototype-window.xilinus.com/">http://prototype-window.xilinus.com/</a>) Extension Class - Utility methods and Class wrappers</p>
+
+    </div>
+  </div>
+  <div class="TN_node" id="SYNOPSIS">
+    <h2 class="TN_label">SYNOPSIS</h2>
+    <div class="TN_content">
+      <p>Composed of three subclasses</p>
+
+    </div>
+  </div>
+<p>Extension to Windows Class</p>
+<p>Extension to Window Class </p>
+<p>Extension to Dialog Class</p>
+  <div class="TN_node" id="DEPENDENCIES">
+    <h2 class="TN_label">DEPENDENCIES</h2>
+    <div class="TN_content">
+      <p>This class depends on </p>
+
+    </div>
+  </div>
+  <div class="TN_node" id="DESCRIPTION">
+    <h2 class="TN_label">DESCRIPTION</h2>
+    <div class="TN_content">
+      <p>This class was developped to make the instantiation and manipulation
+of Window objects easy, uniform and DMWeb ready.</p>
+<p>This class introduced the following new concepts/bug fixes to the original
+Window class.</p>
+<ul>
+<li><a name="item_windows_parent_child_relationship"></a><b>windows parent/child relationship</b>
+<p>a logical way for window recycling</p>
+</li>
+<li><a name="item_focus_aware"></a><b>focus aware</b>
+<p>for a consistant keyboard navigation</p>
+</li>
+<li><a name="item_scroll_offset_aware"></a><b>scroll offset aware</b>
+<p>window location can be set in an absolute way.
+default window location (top/left) to center.</p>
+</li>
+<li><a name="item_clearOnClose_option"></a><b>clearOnClose option</b>
+<p>for memory reasons, closed windows will remain in the DOM but their content will be erased.</p>
+</li>
+<li><a name="item_fluid_height"></a><b>fluid height</b>
+<p>if the height of the window is not set, the window will resize to fit its content.</p>
+</li>
+<li><a name="item_window_fullscreen"></a><b>window fullscreen</b>
+<p>an easy way to set the dimensions of the window to fullscreen</p>
+</li>
+<li><a name="item_JS_Stash"></a><b>JS Stash</b>
+<p>windows that have their content bound to an XHR request, will have access to an 
+in-memory hash used to store js variables.</p>
+</li>
+</ul>
+<p>It defines 3 classes of windows:</p>
+<ul>
+<li><a name="item_Window_Ext_HTMLWindow"></a><b>Window.Ext.HTMLWindow</b>
+<p>Window that has its content ready as an html(+javascript).</p>
+</li>
+<li><a name="item_Window_Ext_AJAXWindow"></a><b>Window.Ext.AJAXWindow </b>
+<p>Window that would retrieve its content via XHR request.</p>
+</li>
+<li><a name="item_Window_Ext_IFRAMEWindow"></a><b>Window.Ext.IFRAMEWindow</b>
+<p>Window that has an iframe embdedded in its content.</p>
+</li>
+</ul>
+<p>And 4 types of dialogs:</p>
+<ul>
+<li><a name="item_Dialog_Ext_Error"></a><b>Dialog.Ext.Error</b>
+<p>A dialog displaying an error message</p>
+</li>
+<li><a name="item_Dialog_Ext_Alert"></a><b>Dialog.Ext.Alert</b>
+<p>A dialog with an alert message</p>
+</li>
+<li><a name="item_Dialog_Ext_Confirm"></a><b>Dialog.Ext.Confirm</b>
+<p>A dialog with a confirmation message</p>
+</li>
+<li><a name="item_Dialog_Ext_Progress"></a><b>Dialog.Ext.Progress </b>
+<p>A dialog with a progress indicator and an informational message</p>
+</li>
+</ul>
+<p>It also provides utility methods to control the application focus mainly when a 
+window/dialog opens and closes.</p>
+
+    </div>
+  </div>
+  <div class="TN_node" id="Windows_Ext">
+    <h2 class="TN_label">Windows.Ext</h2>
+    <div class="TN_content">
+      <p>Contains utility methods for showing/hiding, opening/closing ... window instances.</p>
+  <div class="TN_node" id="Methods">
+    <h3 class="TN_label">Methods</h3>
+    <div class="TN_content">
+        <div class="TN_node" id="Windows_Ext_relateWindows_parentWindowId_childWindowId_">
+    <h4 class="TN_label">Windows.Ext.relateWindows(parentWindowId, childWindowId)</h4>
+    <div class="TN_content">
+      <p><i>(Mostly used internally)</i></p>
+<p>Establishes a parent/child relationship between 2 windows.
+This relationship will enforce the following behaviour:</p>
+<pre>    parent closed    -&gt; close all children
+    parent destroyed -&gt; destroy all children</pre>
+
+<ul>
+<li><a name="item_parentWindowId__i__string___i_"></a><b>parentWindowId <i>(string)</i> </b>
+<p>Id of the window to act as the parent</p>
+</li>
+<li><a name="item_childWindowId__i__string___i_"></a><b>childWindowId <i>(string)</i> </b>
+<p>Id of the window to act as the child</p>
+</li>
+</ul>
+
+    </div>
+  </div>
+  <div class="TN_node" id="Windows_Ext_handFocus_windowId_">
+    <h4 class="TN_label">Windows.Ext.handFocus(windowId)</h4>
+    <div class="TN_content">
+      <p><i>(Mostly used internally)</i></p>
+<p>Hands the focus to a Window instance by 'activating' the window's focus_target. 
+If not defined, the window's first editable input will be focused.</p>
+<ul>
+<li><a name="item_windowId__i__string___i_"></a><b>windowId <i>(string)</i></b>
+<p>Id of the window to give focus to.</p>
+</li>
+</ul>
+
+    </div>
+  </div>
+  <div class="TN_node" id="Windows_Ext_hideWindow_windowId_">
+    <h4 class="TN_label">Windows.Ext.hideWindow(windowId)</h4>
+    <div class="TN_content">
+      <p><i>(Mostly used internally)</i></p>
+<p>Hides a Window instance while keeping it in the DOM.</p>
+<ul>
+<li><a name="item_windowId__i__string___i_"></a><b>windowId <i>(string)</i></b>
+<p>Id of the window to hide.</p>
+</li>
+</ul>
+
+    </div>
+  </div>
+  <div class="TN_node" id="Windows_Ext_destroyWindow_windowId_">
+    <h4 class="TN_label">Windows.Ext.destroyWindow(windowId)</h4>
+    <div class="TN_content">
+      <p><i>(Mostly used internally)</i></p>
+<p>Destroys a Window instance and removes it from the DOM.</p>
+<ul>
+<li><a name="item_windowId__i__string___i_"></a><b>windowId <i>(string)</i></b>
+<p>Id of the window to destroy.</p>
+</li>
+</ul>
+
+    </div>
+  </div>
+
+    </div>
+  </div>
+
+    </div>
+  </div>
+  <div class="TN_node" id="Window_Ext_Options">
+    <h2 class="TN_label">Window.Ext Options</h2>
+    <div class="TN_content">
+      <p>Details of all Window.Ext options (shared by all Window.Ext instances).</p>
+<p>All window instances in the Window.Ext namespace share an identical set of options 
+that is an extension to the original set defined in Window namespace.</p>
+<p>For sake of brevity, only the extended options and the options that have been
+defaulted will be documented here. </p>
+<p>For the full list of Window Options, please refer to <a href="http://prototype-window.xilinus.com/">http://prototype-window.xilinus.com/</a>.</p>
+<ul>
+<li><a name="item_className__i__string___i_"></a><b>className <i>(string)</i></b>
+<p>Window className to define its look and feel.</p>
+<p>optional - defaulted to 'mac_os_x'</p>
+</li>
+<li><a name="item_maximizable__i__boolean___i_"></a><b>maximizable <i>(boolean)</i></b>
+<p>optional - defaulted to false.</p>
+</li>
+<li><a name="item_modal__i__boolean___i_"></a><b>modal <i>(boolean)</i></b>
+<p>flag to set whether the window opens as a modal window or not.</p>
+<p>optional - defaulted to false.</p>
+</li>
+<li><a name="item_fullscreen__i__boolean___i_"></a><b>fullscreen <i>(boolean)</i></b>
+<p>if set to true, the window dimension/location will be overloaded.</p>
+<p>optional - defaulted to false.</p>
+</li>
+<li><a name="item_resizable__i__boolean___i_"></a><b>resizable <i>(boolean)</i></b>
+<p>optional - defaulted to <code>! fullscreen</code> </p>
+</li>
+<li><a name="item_width__i__numeric___i_"></a><b>width <i>(numeric)</i></b>
+<p>required - in case of <code>fullscreen</code></p>
+</li>
+<li><a name="item_height__i__numeric___i_"></a><b>height <i>(numeric)</i></b>
+<p>optional - defaulted to height of the window content</p>
+</li>
+<li><a name="item_top__i__numeric___i_"></a><b>top <i>(numeric)</i></b>
+<p>optional - defaulted to middle</p>
+</li>
+<li><a name="item_left__i__numeric___i_"></a><b>left <i>(numeric)</i></b>
+<p>optional - defaulted to center</p>
+</li>
+<li><a name="item_destroyOnClose__i__boolean___i_"></a><b>destroyOnClose <i>(boolean)</i></b>
+<p>optional - defaulted to false</p>
+</li>
+<li><a name="item_clearOnClose__i__boolean___i_"></a><b>clearOnClose <i>(boolean)</i></b>
+<p>flag whether to clear the content of a window before it 
+closes.</p>
+<p>optional - defaulted to true</p>
+</li>
+<li><a name="item_owner__i__string___i_"></a><b>owner <i>(string)</i></b>
+<p>Id of the window to as a parent.</p>
+<p>optional</p>
+</li>
+<li><a name="item_focus_targets__i__string_array___i_"></a><b>focus_targets <i>(string|array)</i></b>
+<p>string id or array of string ids of elements that the window
+will hand focus to when it opens.</p>
+<p>optional</p>
+</li>
+<li><a name="item_onSuccess__i__function___i_"></a><b>onSuccess <i>(function)</i></b>
+<p>callback to executes when the window succeeds to open and to 
+set its content</p>
+<p>optional - defaulted to empty function</p>
+</li>
+<li><a name="item_onTabOut__i__function___i_"></a><b>onTabOut <i>(function)</i></b>
+<p>callback to execute when the user tabs out the window.</p>
+<p>optional - defaulted to <code>window.focusWindow()</code></p>
+</li>
+</ul>
+
+    </div>
+  </div>
+  <div class="TN_node" id="Window_Ext_Classes">
+    <h2 class="TN_label">Window.Ext Classes</h2>
+    <div class="TN_content">
+        <div class="TN_node" id="Window_Ext_HTMLWindow">
+    <h3 class="TN_label">Window.Ext.HTMLWindow</h3>
+    <div class="TN_content">
+        <div class="TN_node" id="Javascript">
+    <h4 class="TN_label">Javascript</h4>
+    <div class="TN_content">
+      <p>HTML Window instantiation</p>
+<pre> /**
+  * finds/creates a window object with given id and options.
+  * opens/maximizes/bringsToFront the window object.
+  * sets its content to the html provided.
+  * evaluates the javascript (if any) that is included in the html content.
+  * calls the onSuccess function.
+  */
+  new Window.Ext.HTMLWindow('win_id', 'win_html_content', {
+    title          : 'CHANGE_ME',
+    owner          : 'owner_window_id', 
+    focus_targets  : 'CHANGE_ME',
+  
+    modal          : false, 
+    fullscreen     : false, 
+    
+    destroyOnClose : false,
+    clearOnClose   : true,
+    
+    width             : 0,
+    height            : 0,
+    top               : null,
+    left              : null,
+  
+    // window events
+    onSuccess : function(win) {
+        // window openned successfully
+    },
+  
+    onClose : function(win) {
+        // window closes
+    },
+  
+    onTabOut : function(win) {
+        // user tabs out of the last input in window
+    }
+  });</pre>
+
+
+    </div>
+  </div>
+
+    </div>
+  </div>
+  <div class="TN_node" id="Window_Ext_AJAXWindow">
+    <h3 class="TN_label">Window.Ext.AJAXWindow</h3>
+    <div class="TN_content">
+        <div class="TN_node" id="Javascript">
+    <h4 class="TN_label">Javascript</h4>
+    <div class="TN_content">
+      <p>AJAX Window instantiation</p>
+<pre> /**
+  * finds/creates a window object with given id and options.
+  * opens/maximizes/bringsToFront the window object.
+  * sets its content to the response of XHR.
+  * evaluates javascript (if any) embedded in the XHR response.
+  * calls the onSuccess function
+  */
+  new Window.Ext.AJAXWindow('win_id', 'win_url_ajax', {
+    title          : 'CHANGE_ME',
+    owner          : 'owner_window_id', 
+    focus_targets  : 'CHANGE_ME',
+  
+    modal          : false, 
+    fullscreen     : false, 
+    
+    destroyOnClose : false,
+    clearOnClose   : true,
+    
+    width             : 0,
+    height            : 0,
+    top               : null,
+    left              : null,
+  
+    // window events
+    onSuccess : function(win) {
+        // window openned successfully
+    },
+  
+    onFailure : function(win) {
+        // window failed to open (due to failure in AJAXRequest)
+    },
+  
+    onClose : function(win) {
+        // window closes
+    },
+   
+    onTabOut : function(win) {
+        // user tabs out of the last input in window
+    }
+  });</pre>
+
+
+    </div>
+  </div>
+
+    </div>
+  </div>
+  <div class="TN_node" id="Window_Ext_IFRAMEWindow">
+    <h3 class="TN_label">Window.Ext.IFRAMEWindow</h3>
+    <div class="TN_content">
+        <div class="TN_node" id="Javascript">
+    <h4 class="TN_label">Javascript</h4>
+    <div class="TN_content">
+      <p>IFRAME Window instantiation</p>
+<pre> /**
+  * finds/creates a window object with given id and options.
+  * opens/maximizes/bringsToFront the window object.
+  * sets its IFRAME src to the url provided.
+  * calls the onSuccess function.
+  */
+  new Window.Ext.IFRAMEWindow('win_id', 'win_iframe_url', {
+    title          : 'CHANGE_ME',
+    owner          : 'owner_window_id', 
+    focus_targets  : 'CHANGE_ME',
+  
+    modal          : false, 
+    fullscreen     : false, 
+    
+    destroyOnClose : false,
+    clearOnClose   : true,
+    
+    width             : 0,
+    height            : 0,
+    top               : null,
+    left              : null,
+  
+    onClose : function(win) {
+        // window closes
+    },
+  
+    onTabOut : function(win) {
+        // user tabs out of the last input in window
+    }
+  });</pre>
+
+
+    </div>
+  </div>
+
+    </div>
+  </div>
+
+    </div>
+  </div>
+  <div class="TN_node" id="Dialog_Ext_Utilities">
+    <h2 class="TN_label">Dialog.Ext Utilities</h2>
+    <div class="TN_content">
+      <p>Namespace that contains utilities to open different kind of 
+dialogs.</p>
+  <div class="TN_node" id="Dialog_Ext_Error_error_message_">
+    <h3 class="TN_label">Dialog.Ext.Error(error_message)</h3>
+    <div class="TN_content">
+      <p>Displays the <code>error_message</code> in an 'error-styled' dialog.</p>
+  <div class="TN_node" id="Javascript">
+    <h4 class="TN_label">Javascript</h4>
+    <div class="TN_content">
+      <pre>  Dialog.Ext.Error("error message");</pre>
+
+
+    </div>
+  </div>
+
+    </div>
+  </div>
+  <div class="TN_node" id="Dialog_Ext_Alert_alert_message_callback_">
+    <h3 class="TN_label">Dialog.Ext.Alert(alert_message, callback)</h3>
+    <div class="TN_content">
+      <p>Displays the <code>alert_message</code> is an 'warning-styled' dialog.
+Callback will be executed with the closure of the dialog.</p>
+  <div class="TN_node" id="Javascript">
+    <h4 class="TN_label">Javascript</h4>
+    <div class="TN_content">
+      <pre>  Dialog.Ext.Alert("alert_message", function() {
+    // alert window has been closed
+  });</pre>
+
+
+    </div>
+  </div>
+
+    </div>
+  </div>
+  <div class="TN_node" id="Dialog_Ext_Progress_message_callback_">
+    <h3 class="TN_label">Dialog.Ext.Progress(message, callback)</h3>
+    <div class="TN_content">
+      <p>Opens a dialog with a progress indicator and message.  
+Callback will be executed after a 1sec delay.</p>
+  <div class="TN_node" id="Javascript">
+    <h4 class="TN_label">Javascript</h4>
+    <div class="TN_content">
+      <pre>  Dialog.Ext.Progress("progress_message", function() {
+    // progress window displayed for 1sec
+    // do this next
+  });</pre>
+
+<pre>  // close progress window
+  Dialog.Ext.endProgress();</pre>
+
+
+    </div>
+  </div>
+
+    </div>
+  </div>
+  <div class="TN_node" id="Dialog_Ext_Confirm_confirmation_message_ok_callback_cancel_callback_">
+    <h3 class="TN_label">Dialog.Ext.Confirm(confirmation_message, ok_callback, cancel_callback)</h3>
+    <div class="TN_content">
+      <p>Opens a dialog with confirmation message and an OK and Cancel buttons with designated callbacks.</p>
+  <div class="TN_node" id="Javascript">
+    <h4 class="TN_label">Javascript</h4>
+    <div class="TN_content">
+      <pre>  Dialog.Ext.Confirm("conrfirmation_message", 
+    function() {
+        // user clicked ok
+    }, 
+    function() {
+        // user clicked cancel
+    }
+  );</pre>
+
+
+    </div>
+  </div>
+
+    </div>
+  </div>
+
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

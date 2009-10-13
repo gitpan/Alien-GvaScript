@@ -40,6 +40,14 @@ KeyMap - Manage maps of handlers for key events
   aKeyMap.rules.pop();
 
 
+=head1 DESTRUCTOR 
+
+  aKeyMap.destroy();
+
+This method will remove the keymap handler attached the element/document.
+Call this method when the concerned element is removed from the DOM
+or to deactivate the keymap handler.
+
 =head1 DESCRIPTION
 
 Provides an abstraction layer for associating handlers

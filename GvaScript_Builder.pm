@@ -2,8 +2,8 @@ package GvaScript_Builder;
 use base 'Module::Build';
 
 use strict;
-use warnings;
 
+use warnings;
 
 # some files in the distribution are derived from pod and pm sources
 # so we regenerate them when doing actions "build" or "distdir"
@@ -21,10 +21,15 @@ sub ACTION_distdir{
 }
 
 
+sub ACTION_wiki {
+  my ($self) = @_;
+  $self->generate_googlewiki;
+}
+
 sub generate_from_sources {
   my ($self) = @_;
   $self->generate_js;
-  eval {$self->generate_html}; # might fail if Pod::POM is not installed
+  eval {$self->generate_html};       # might fail if Pod::POM is not installed
 }
 
 
@@ -34,8 +39,9 @@ sub generate_js { # concatenates sources below into "GvaScript.js"
 
   my @sources = qw/protoExtensions event keyMap 
                    treeNavigator choiceList autoCompleter
+                   customButtons paginator grid
                    repeat form/;
-  my $dest = "lib/Alien/GvaScript/lib/GvaScript.js";
+  my $dest = "lib/GvaScript.js";
   chmod 0777, $dest;
   open my $dest_fh, ">$dest"  or die "open >$dest : $!";
 
@@ -46,6 +52,7 @@ sub generate_js { # concatenates sources below into "GvaScript.js"
  *  Authors: Laurent Dami            <laurent.d...\@etat.ge.ch>
  *           Jean-Christophe Durand  <jean-christophe.d.....\@etat.ge.ch>
  *           Sébastien Cuendet       <sebastien.c.....\@etat.ge.ch>
+ *           Mona Remlawi            <mona.rem....\@etat.ge.ch>
  *  LICENSE
  *  This library is free software, you can redistribute it and/or modify
  *  it under the same terms as Perl's artistic license.
@@ -75,7 +82,7 @@ sub generate_html {# regenerate html doc from pod sources
   foreach my $podfile (@podfiles) {
     my $pom = $parser->parse($podfile) or die $parser->error;
     $podfile =~ m[^lib/Alien/GvaScript/(.*)\.pod];
-    my $htmlfile = "lib/Alien/GvaScript/html/$1.html";
+    my $htmlfile = "doc/html/$1.html";
     print STDERR "converting $podfile ==> $htmlfile\n";
     open my $fh, ">$htmlfile" or die "open >$htmlfile: $!";
     print $fh Pod::POM::View::HTML::GvaScript->print($pom);
@@ -83,6 +90,38 @@ sub generate_html {# regenerate html doc from pod sources
   }
   return 1;
 }
+
+sub generate_googlewiki {# regenerate wiki doc from pod sources
+  my ($self) = @_;
+
+  require Pod::Simple::Wiki;
+  require Pod::Simple::Wiki::Googlecode;
+
+  # destination for wiki files
+  my $dir = "blib/wiki";
+  -d $dir or mkdir $dir or die "mkdir $dir: $!";
+
+  # list of source files
+  my @podfiles = glob ("lib/Alien/GvaScript/*.pod");
+
+  # convert each file
+  foreach my $podfile (@podfiles) {
+
+    $DB::single = 1;
+    my $parser = Pod::Simple::Wiki->new('googlecode');
+    $podfile =~ m[^lib/Alien/GvaScript/(.*)\.pod];
+    my $wikifile = "$dir/$1.wiki";
+    open my $fh, ">$wikifile" or die "open >$wikifile: $!";
+    print STDERR "converting $podfile ==> $wikifile\n";
+
+    $parser->output_fh($fh);
+    $parser->parse_file($podfile);
+  }
+
+  return 1;
+}
+
+
 
 1;
 
@@ -116,16 +155,11 @@ sub view_pod {
   return <<__EOHTML__
 <html>
 <head>
-  <link href="../lib/GvaScript.css" rel="stylesheet" type="text/css">
-  <script src="../lib/prototype.js"></script>
-  <script src="../lib/GvaScript.js"></script>
+  <script src="../../lib/prototype.js"></script>
+  <script src="../../lib/GvaScript.js"></script>
   <link href="GvaScript_doc.css" rel="stylesheet" type="text/css">
   <script>
-    var treeNavigator;
-    function setup() {  
-      new GvaScript.TreeNavigator('TN_tree');
-    }
-    window.onload = setup;
+    document.observe('dom:loaded', function() { new GvaScript.TreeNavigator('TN_tree'); });
     function jumpto_href(event) {
       var label = event.controller.label(event.target);
       if (label && label.tagName == "A") {

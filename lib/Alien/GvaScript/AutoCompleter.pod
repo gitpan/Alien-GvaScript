@@ -43,7 +43,7 @@ a time), and will take care of capturing user input, navigating in the
 suggestion list, and filling the field with the chosen value.
 
 An event model is associated with the autocompleter, so that
-client code can insert its own hooks to various steps of
+client code can insert hooks to various steps of
 the autocompletion behaviour.
 
 The list of suggestions may contain arbitrary HTML, including rich
@@ -87,12 +87,12 @@ The string is taken as a base URL. Whenever a suggestion list is needed,
 the autocompleter will send an Ajax requests to that URL, concatenated with 
 the current value in the associated field. So for example if we have
 
-  var ac = new GvaScript.Autocompleter("http://my/server/completion?search=");
+  var ac = new GvaScript.Autocompleter("/myapp/completion?search=");
   ..
   <input name="someInput" onfocus="ac.complete(this)">
 
 and user has typed C<ab> in the input field, then an Ajax request
-will be sent to C<http://my/server/completion?search=ab>.
+will be sent to C</myapp/completion?search=ab>.
 
 The server should return a JSON array, in the format explained below.
 
@@ -107,6 +107,19 @@ The array is taken as in-memory datasource. The returned suggestion
 list is either the complete array (when C<options.ignorePrefix> is true)
 or just the list of items that are prefixed by the current value 
 of the field. See also C<options.caseSensitive>.
+
+=item an object (JSONP)
+
+Useful when accessing data on a different domain via JSONP services.
+
+  Ex :   { json_url: 'http://search.yahooapis.com/WebSearchService/V1/relatedSuggestion?appid=YahooDemo&query=?1&output=json&callback=?2',
+           json_list: 'ResultSet/Result' }
+
+The object should hold details of the JSONP service to be called. 
+
+C<json_url> : url to call with placeholders (?1, ?2) for value to look for and callback method respectively.
+
+C<json_list> : path to the list in the json response
 
 =back
 
@@ -273,6 +286,68 @@ Default is C<AC_message>.
 =back
 
 
+=item additional_params
+
+Other parameters to be added in the Ajax query for autocompletion.
+Can be either an array or an already encoded string (see C<Ajax.Options> in
+C<prototype.js>).
+[TODO: should be camelCase to be consistent with other options; 
+check dependencies in DMWeb].
+
+
+=item dependentFields
+
+  var ac =  new GvaScript.Autocompleter(url, {
+              dependentFields : {
+                foo : "firstname",
+                bar : "lastname",
+                id  : "id"
+              } } );
+
+Inline object that specifies dependencies between the field
+controlled by the autocompleter, and other fields in the same form.
+When leaving the autocompleted field (C<onBlur>), the dependent fields
+will be updated automatically. This only works for autocompleters
+in strict mode.
+
+Each key in the inline object specifies the name of a field related
+to the autocompleted field. If field names are in dotted notation, 
+then the related field is taken as a path relative to the autocompleted
+field : so for example if the autocompleted field has name
+C<some.very.3.long.2.path>, then the C<foo> entry in
+C<dependentFields> will refer to field C<some.very.3.long.2.foo>.
+
+
+The corresponding value (in our example above: C<firstname>) is
+the name of a property to extract from the C<choice> member
+that validated the current input. However, the autocompleted field
+may also contain an empty value (in which case the related fields
+are also emptied), or an illegal value (in which case the related
+fields are filled with string C<ILLEGAL_***>, where C<***> is the 
+key from the inline object).
+
+If the C<choice> member is not an object, but just a string,
+then that string is copied to the dependent field, therefore ignoring
+the hash value (C<firstname> in our example).
+
+As a special case, if the hash value is an empty string,
+then the dependent field is emptied, ignoring whatever
+information may be in the C<choice> element.
+
+
+The dependent fields structure might also be specified as
+an HTML attribute C<ac:dependentFields>, instead of an option 
+to the Javascript object :
+
+  <input name="some.very.3.long.2.path"
+         onfocus="ac.autocomplete(this)"
+         ac:dependentFields="{foo:'firstname',bar:'lastname',id:'id'}" />
+  ...
+  <input type="hidden"
+         name="some.very.3.long.2.id" />
+
+
+
 =back
 
 =head1 METHODS
@@ -284,17 +359,19 @@ an input field, i.e.
 
   <input name="someInput" onfocus="myAutoCompleter.complete(this)">
 
-The autocompleter will automatically register an
-C<onblur> handler on the same field, so avoid
+The autocompleter will automatically register 
+C<onblur>, C<onclick> and C<onkeydown> handlers on the same field, so avoid
 setting your own, which may cause unpredictable interactions.
-However the autocompleter has its own event model with an
-C<onLeave> event to which you can bind your handling code.
+However the autocompleter has its own event model 
+to which you can bind your handling code
+(see the L<EVENTS> section below).
 
 =head2 detach(inputField)
 
-Detaches the autocomplete object from the input field
+Permanently detaches the input field from the autocompleter object
 (i.e. remove C<onblur> and C<onkeypress> handlers
-that were previously set by the C<autocomplete> method).
+that were previously set by the first invocation of the 
+C<autocomplete> method).
 
 =head2 displayMessage(messageText)
 
@@ -335,15 +412,51 @@ calls the L</"autocomplete"> method.
 
 This event is triggered whenever the autocompleter object 
 cuts the association with an input field; typically this
-occurs when the input field loses focus (
-calls the L</"autocomplete"> method.
+occurs when the input field loses focus.
+
+If in strict mode, the autocompleter object will also
+check if the final value is legal or illegal with respect
+to the list of available choices. This may require an
+additional Ajax call, so the C<onLeave> event may be
+triggered I<before> the C<onLegalValue> or C<onIllegalValue> events.
+
 
 =head2 onComplete
+
+[OBSOLETE; use C<onLegalValue> or C<onIllegalValue> instead]
 
 This event is triggered whenever the user has chosen
 an item in the displayed suggestion list.
 The event handler may use C<event.index> to know the index of the
 selected choice.
+
+
+=head2 onLegalValue
+
+This event is triggered when the autocompleter is in strict mode,
+the input field has just been left (C<onBlur> event), and the 
+autocompleter was able to verify that the current input value
+belongs to the list of available choices.
+
+The event contains a C<value> property (current value in the 
+input element), and a C<choice> property (member of the 
+C<choices> array that matches the current value).
+The C<controller> property is null because the event may
+occur after the autocompleter object has been detached from the input
+field and has been perhaps already bound to another field, so interacting 
+with the autocompleter from the event handler would lead to inconsistencies.
+
+=head2 onIllegalValue
+
+This event is triggered when the autocompleter is in strict mode,
+the input field has just been left (C<onBlur> event), and the 
+autocompleter was not able to verify that the current input value
+belongs to the list of available choices.
+
+The event only contains a C<value> property (current value in the 
+input element). The C<controller> property is null (same reasons
+as C<onLegalValue> above).
+
 
 =head2 onHighlight
 

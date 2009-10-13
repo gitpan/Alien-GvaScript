@@ -31,6 +31,10 @@ C<RETURN> (for selecting) or C<ESCAPE> (for cancelling).
 
   var choiceList = new GvaScript.ChoiceList(choices, options);
 
+=head2 DESTRUCTOR
+    
+    choiceList.destroy();
+
 =head2 Choices
 
 The choice list must be an array. Each item in the list is either
@@ -82,6 +86,11 @@ How many items to skip when hitting the
 C<PAGE_UP> or C<PAGE_DOWN> keys. 
 Default is 5
 
+=item mouseovernavi 
+
+Boolean indicating whether the choices would be selected/deselected with the 
+mouseover event.
+Default is C<true>
 
 =item classes
 
@@ -110,6 +119,15 @@ open and close the table within the C<htmlWrapper> callback).
 =back
 
 =head1 METHODS
+
+=head2 destroy
+
+  choiceList.destroy();
+
+This method removes all handlers attached to different
+events on the choice list container.
+Call this method when the choice list container is removed
+from the DOM.
 
 =head2 fillContainer
 

@@ -1,15 +1,27 @@
 /** 
+
 TODO: 
   - if ignorePrefix, should highlight current value (not the 1st one)
       a) change in _updateChoicesFunction (because there might be an
          initial value in the form)
-      b) what happens if value set programmatically ?
-      c) in _checkNewValue : do not destroy the choiceList; just update
-         the element
 
-  - BUG: if strict && noBlank && Ajax server down, MSIE takes 100% CPU
   - messages : choose language
-  - 'actions' are not documented because the design needs rethinking
+
+  - multivalue :
+     - inconsistent variable names
+     - missing doc
+
+  - rajouter option "hierarchicalValues : true/false" (si true, pas besoin de
+    refaire un appel serveur quand l'utilisateur rajoute des lettres).
+
+  - sometimes arrowDown should force Ajax call even if < minChars
+
+  - choiceElementHTML
+
+  - cache choices. Modes are NOCACHE / CACHE_ON_BIND / CACHE_ON_SETUP
+
+  - dependentFields should also work with non-strict autocompleters
+
 **/
 
 //----------------------------------------------------------------------
@@ -23,62 +35,70 @@ GvaScript.AutoCompleter = function(datasource, options) {
     labelField       : "label",
     valueField       : "value",
     autoSuggest      : true,      // will dropDown automatically on keypress
-    autoSuggestDelay : 200,       // milliseconds
+    autoSuggestDelay : 100,       // milliseconds, (OBSOLETE)
+    checkNewValDelay : 100,       // milliseconds
     typeAhead        : true,      // will fill the inputElement on highlight
     classes          : {},        // see below for default classes
     maxHeight        : 200,       // pixels
     minWidth         : 200,       // pixels
     offsetX          : 0,         // pixels
-    strict           : false,     // will not force to take value from choices
-    completeOnTab    : true,     // will not force to take value from choices
-    blankOK          : true,
-    colorIllegal     : "red",
+    strict           : false,     // will complain on illegal values
+    blankOK          : true,      // if strict, will also accept blanks
+    colorIllegal     : "red",     // background color when illegal values
     scrollCount      : 5,
-    actionItems      : null,       // choice items to invoke javascript method
     multivalued      : false,
-    multivalue_separator :  /[;,\s\t]/,
+    multivalue_separator :  /[;,\s]\s*/,
     choiceItemTagName: "div",
     htmlWrapper      : function(html) {return html;},
-    observed_scroll  : null,      // observe the scroll of a given element and move the dropdown accordingly (useful in case of scrolling windows)
-    additional_params: null,        //additional parameters with optional default values (only in the case where the datasource is a URL)
-    http_method      : 'get' // when additional_params is set, we might to just pass them in the body of the request
+    observed_scroll  : null,      // observe the scroll of a given element and 
+                                  // move the dropdown accordingly (useful in 
+                                  // case of scrolling windows)
+    additional_params: null,      // additional parameters with optional default
+                                  // values (only in the case where the 
+                                  // datasource is a URL)
+    http_method      : 'get',     // method for Ajax requests
+    dependentFields  : {},
+    deltaTime_tolerance : 50      // added msec. for imprecisions in setTimeout
+
   };
 
   // more options for array datasources
   if (typeof datasource == "object" && datasource instanceof Array) { 
-    defaultOptions.ignorePrefix  = false;  // will always display the full list
+    defaultOptions.ignorePrefix  = false;  // if true, will always display 
+                                           // the full list
     defaultOptions.caseSensitive = true;
   }
 
   this.options = Class.checkOptions(defaultOptions, options);
 
+  // backwards compatibility
+  this.options.checkNewValDelay = this.options.autoSuggestDelay;
+
   var defaultClasses = {
     loading         : "AC_loading",
     dropdown        : "AC_dropdown",
-    message         : "AC_message",
-    action          : "AC_action"  // undocumented on purpose !
+    message         : "AC_message"
   };
   this.classes = Class.checkOptions(defaultClasses, this.options.classes);
   
-  this.separator = new RegExp(this.options.multivalue_separator);
-  this.default_separator_char = " "; //character used when the values are joined
-
   if (this.options.multivalued && this.options.strict) {
-    throw new Error("not allowed to have a multivalued autocompleter in strict mode");
+    throw new Error("options 'strict' and 'multivalue' are incompatible");
   }
 
   this.dropdownDiv = null;
+  // array to store running ajax requests
+  // of same autocompleter but for different input element
+  this._runningAjax = [];
 
-  // install self-update function, depending on datasource type
-  this.updateChoices = this._updateChoicesFunction(datasource);
+  this.setdatasource(datasource);
 
-  // prepare a keymap for all key presses; will be registered at first
+  // prepare an initial keymap; will be registered at first
   // focus() event; then a second set of keymap rules is pushed/popped
   // whenever the choice list is visible
-  var basicHandler = this._keyPressHandler.bindAsEventListener(this);
-  var detectedKeys = /^(BACKSPACE|DELETE|.)$/;
+  var basicHandler = this._keyDownHandler.bindAsEventListener(this);
+  var detectedKeys = /^(BACKSPACE|DELETE|KP_\d|.)$/;
                    // catch any single char, plus some editing keys
-  var basicMap     = { DOWN: this._keyDownHandler.bindAsEventListener(this),
+  var basicMap     = { DOWN: this._ArrowDownHandler.bindAsEventListener(this),
                        REGEX: [[null, detectedKeys, basicHandler]] };
   this.keymap = new GvaScript.KeyMap(basicMap);
 
@@ -96,35 +116,36 @@ GvaScript.AutoCompleter.prototype = {
 // PUBLIC METHODS
 //----------------------------------------------------------------------
 
-  // called when the input element gets focus
+  // autocomplete : called when the input element gets focus; binds 
+  // the autocompleter to the input element 
   autocomplete: function(elem) { 
     elem = $(elem);// in case we got an id instead of an element
 
     if (!elem) throw new Error("attempt to autocomplete a null element");
 
-    // if we were the last to have focus, just recover it, no more work.
+    // if already bound, no more work to do
     if (elem === this.inputElement) return;
 
-    this.inputElement   = elem;
-
-    if (!elem._autocompleter) { // register handlers only if new elem
+    // bind to the element; if first time, also register the event handlers
+    this.inputElement = elem;
+    if (!elem._autocompleter) { 
       elem._autocompleter = this;
-      this.keymap.observe("keydown", elem, { preventDefault:false,
-                                             stopPropagation:false});
+      this.keymap.observe("keydown", elem, Event.stopNone);
       Element.observe(elem, "blur", this.reuse.onblur);
       Element.observe(elem, "click", this.reuse.onclick);
 
       // prevent browser builtin autocomplete behaviour
-      elem.setAttribute("autocomplete", "off");
+      elem.writeAttribute("autocomplete", "off");
     }
 
     // initialize time stamps
-    this._timeLastCheck = this._timeLastKeyPress = 0;
+    this._timeLastCheck = this._timeLastKeyDown = 0;
 
     // more initialization, but only if we did not just come back from a 
     // click on the dropdownDiv
     if (!this.dropdownDiv) {
-      this.lastValue      = null;
+      this.lastTypedValue = this.lastValue = "";
+      this.choices = null;
       this.fireEvent("Bind", elem);
     }
 
@@ -139,43 +160,61 @@ GvaScript.AutoCompleter.prototype = {
 
   displayMessage : function(message) {
     this._removeDropdownDiv();
-    var div = this._mkDropdownDiv();
-    div.innerHTML = message;
-    Element.addClassName(div, this.classes.message);
+    if(_div = this._mkDropdownDiv()) {
+      _div.innerHTML = message;
+      Element.addClassName(_div, this.classes.message);
+    }
   },
 
   // set additional params for autocompleters that have more than 1 param;
   // second param is the HTTP method (post or get)
+  // DALNOTE 10.01.09 : pas de raison de faire le choix de la  méthode HTTP
+  // dans  setAdditionalParams()! TOFIX. Apparemment, utilisé une seule fois 
+  // dans DMWeb (root\src\tab_composition\form.tt2:43)
   setAdditionalParams : function(params, method) {
     this.additional_params = params;           
-    this.http_method = method;
+    if (method) this.options.http_method = method;
   },
 
   addAdditionalParam : function(param, value) {
+    if (!this.additional_params) 
+      this.additional_params = {};
     this.additional_params[param] = value;
   },
 
-  setHttpMethod : function(method) {
-    if (method != 'get' || method != 'post') {
-        alert('Unrecognised type of http method')
-    }
-    this.http_method = method;
-  }, 
-
-  //
-  // TODO: TO BE REMOVED OR COMMITED TO ALIEN PACKAGE
-  //
   setdatasource : function(datasource) {
-    this.updateChoices = this._updateChoicesFunction(datasource);
+
+    // remember datasource in private property
+    this._datasource = datasource;
+
+    // register proper "updateChoices" function according to type of datasource
+    var ds_type = typeof datasource;
+    this._updateChoicesHandler 
+      = (ds_type == "string")   ? this._updateChoicesFromAjax
+      : (ds_type == "function") ? this._updateChoicesFromCallback
+      : (ds_type == "object" && datasource instanceof Array) 
+                                ? this._updateChoicesFromArray 
+      : (ds_type == "object" && datasource instanceof Object) 
+                                ? this._updateChoicesFromJSONP
+      : undefined;
+     if (!this._updateChoicesHandler)
+      throw new Error("unexpected datasource type");
   },
 
-  fireEvent: GvaScript.fireEvent, // must be copied here for binding "this" 
+  // 'fireEvent' function is copied from GvaScript.fireEvent, so that "this" 
+  // in that code gets properly bound to the current object
+  fireEvent: GvaScript.fireEvent, 
 
   // Set the element for the AC to look at to adapt its position. If elem is
   // null, stop observing the scroll.
+  // DALNOTE 10.01.09 : pas certain de l'utilité de "set_observed_scroll"; si 
+  // l'élément est positionné correctement dans le DOM par rapport à son parent,
+  // il devrait suivre le scroll automatiquement. N'est utilisé dans DMWeb que
+  // par "avocat.js".
   set_observed_scroll : function(elem) {
     if (!elem) {
-        Event.stopObserving(this.observed_scroll, 'scroll', correct_dropdown_position);
+        Event.stopObserving(this.observed_scroll, 'scroll', 
+                            correct_dropdown_position);
         return;
     }
 
@@ -185,15 +224,18 @@ GvaScript.AutoCompleter.prototype = {
     var correct_dropdown_position = function() {
       if (this.dropdownDiv) {
         var dim = Element.getDimensions(this.inputElement);
-        var pos = this.dropdownDiv.positionedOffset()
-        this.dropdownDiv.style.top  = pos.top - (this.observed_scroll.scrollTop - this.currentScrollTop) + "px";
-        this.dropdownDiv.style.left = pos.left - this.observed_scroll.scrollLeft + "px"; 
+        var pos = this.dropdownDiv.positionedOffset();
+        pos.top  -= this.observed_scroll.scrollTop - this.currentScrollTop;
+        pos.left -= this.observed_scroll.scrollLeft;
+        this.dropdownDiv.style.top  = pos.top   + "px";
+        this.dropdownDiv.style.left = pos.left  + "px"; 
       }
       this.currentScrollTop = this.observed_scroll.scrollTop;
       this.currentScrollLeft = this.observed_scroll.scrollLeft;
     }
 
-    Event.observe(elem, 'scroll', correct_dropdown_position.bindAsEventListener(this));
+    Event.observe(elem, 'scroll', 
+                  correct_dropdown_position.bindAsEventListener(this));
   },
 
 
@@ -201,183 +243,272 @@ GvaScript.AutoCompleter.prototype = {
 // PRIVATE METHODS
 //----------------------------------------------------------------------
 
-  // an auxiliary function for the constructor
-  _updateChoicesFunction : function(datasource) { 
-    if (typeof datasource == "string") { // URL
-      return function () {
-        var autocompleter = this; // needed for closures below
-        autocompleter.inputElement.style.backgroundColor = ""; // remove colorIllegal
-        if (this._runningAjax)
-          this._runningAjax.transport.abort();
-        Element.addClassName(autocompleter.inputElement, this.classes.loading);
-        var toCompleteVal = this._getValueToComplete();
-        
-        //integrate possible additional parameters in the URL request
-        var additional_params = this.additional_params;// for example {C_ETAT_AVOC : 'AC'}
-        var http_method = this.http_method ? this.http_method : this.options.http_method;
-        var partial_url = '';
-        if (additional_params && http_method == 'get') {
-            for (var key in additional_params) {
-                partial_url += "&" + key + "=" + additional_params[key]; 
-            }
-        } 
+  _updateChoicesFromAjax: function (val_to_complete, continuation) {
 
-        var complete_url = datasource + toCompleteVal + partial_url;
-        this._runningAjax = new Ajax.Request(
-          complete_url,
-          {asynchronous: true,
-           method: http_method,
-           postBody: this.http_method == 'post' ? Object.toJSON(additional_params) : null,
-           contentType: "text/javascript",
-           onSuccess: function(xhr) {
-              autocompleter._runningAjax = null;
+    // copies into local variables, needed for closures below (can't rely on 
+    // 'this' because 'this' may have changed when the ajax call comes back)
+    var autocompleter = this; 
+    var inputElement  = this.inputElement;
 
-              // do nothing if aborted by the onblur handler
-              if(xhr.transport.status == 0) return;
+    inputElement.style.backgroundColor = ""; // remove colorIllegal
 
-              autocompleter.choices = xhr.responseJSON;
-              autocompleter._displayChoices();
-           },
-           onFailure: function(xhr) {
-              autocompleter._runningAjax = null;
-              autocompleter.displayMessage("pas de réponse du serveur");
-           },
-           onComplete: function(xhr) {
-              Element.removeClassName(autocompleter.inputElement, 
-                                      autocompleter.classes.loading);
-           }
+    // abort prev ajax request on this input element 
+    if (this._runningAjax[inputElement.name])
+      this._runningAjax[inputElement.name].transport.abort();
+    Element.addClassName(inputElement, this.classes.loading);
+    
+    var complete_url = this._datasource + val_to_complete;
+    this._runningAjax[inputElement.name] = new Ajax.Request(
+      complete_url,
+      {asynchronous: true,
+       method: this.options.http_method,
+       parameters: this.additional_params, // for example {C_ETAT_AVOC : 'AC'}
+
+       // DALNOTE 10.01.09: forcer du JSON dans le body du POST est spécifique 
+       // DMWeb; pour le cas général il faut pouvoir envoyer du 
+       // x-www-form-urlencoded ordinaire
+       postBody: this.options.http_method == 'post'
+                     ? Object.toJSON(this.additional_params) 
+                     : null,
+
+       contentType: "text/javascript",
+       evalJSON: 'force', // will evaluate even if header != 'application/json'
+       onSuccess: function(xhr) {
+          // aborted by the onblur handler
+          if(xhr.transport.status == 0) return;
+          
+          autocompleter._runningAjax[inputElement.name] = null;
+          if (xhr.responseJSON)
+              continuation(xhr.responseJSON);
+       },
+       onFailure: function(xhr) {
+          autocompleter._runningAjax[inputElement.name] = null;
+          autocompleter.displayMessage("pas de réponse du serveur");
+       },
+       onComplete: function(xhr) {
+          Element.removeClassName(inputElement, 
+                                  autocompleter.classes.loading);
+       }
+      });
+  },
+
+  _updateChoicesFromCallback : function(val_to_complete, continuation) {
+     continuation(this._datasource(val_to_complete));
+  },
+
+  _updateChoicesFromJSONP : function(val_to_complete, continuation) {
+      if(val_to_complete) {
+        var _url = this._datasource.json_url.replace(/\?1/, val_to_complete);
+        var that = this;
+
+        Element.addClassName(that.inputElement, that.classes.loading);
+        Prototype.getJSON(_url, function(data) {
+          var _data_list = data;
+         
+          if(that._datasource.json_list)
+          that._datasource.json_list.split('/').each(function(p) {
+            _data_list = _data_list[p];
           });
-        return true; // asynchronous
-      };
-    }
-    else if (typeof datasource == "function") { // callback
-      return function() {
-        this.inputElement.style.backgroundColor = ""; // remove colorIllegal
-        this.choices = datasource(this._getValueToComplete());
-        return false; // not asynchronous
-      };
-    }
-    else if (typeof datasource == "object" &&
-             datasource instanceof Array) { // in-memory
-      return function () {
-        this.inputElement.style.backgroundColor = ""; // remove colorIllegal
-        if (this.options.ignorePrefix)
-          this.choices = datasource;
-        else {
-            var toCompleteVal = this._getValueToComplete();
-            var regex = new RegExp("^" + toCompleteVal,
-                                 this.options.caseSensitive ? "" : "i");
-          var matchPrefix = function(choice) {
-	    var value;
-	    switch(typeof choice) {
-	      case "object" : value = choice[this.options.valueField]; break;
-	      case "number" : value = choice.toString(10); break;
-	      case "string" : value = choice; break;
-	      default: throw new Error("unexpected type of value");
-            }
-            return value.search(regex) > -1;
-          };
-          this.choices = datasource.select(matchPrefix.bind(this));
+          Element.removeClassName(that.inputElement, that.classes.loading);
+          
+          continuation(_data_list);
+        });
+      }
+  },
+
+  _updateChoicesFromArray : function(val_to_complete, continuation) {
+    if (this.options.ignorePrefix)
+        continuation(this._datasource);
+    else {
+      var regex = new RegExp("^" + RegExp.escape(val_to_complete),
+                             this.options.caseSensitive ? "" : "i");
+      var matchPrefix = function(choice) {
+        var value;
+        switch(typeof choice) {
+          case "object" : value = choice[this.options.valueField]; break;
+          case "number" : value = choice.toString(10); break;
+          case "string" : value = choice; break;
+          default: throw new Error("unexpected type of value");
         }
-        return false; // not asynchronous
+        return value.search(regex) > -1;
       };
+      continuation(this._datasource.select(matchPrefix.bind(this)));
     }
-    else 
-      throw new Error("unexpected datasource type");
   },
 
 
-  _blurHandler: function(event) { // does the reverse of "autocomplete()"
+  _updateChoices : function (continuation) {
+    var value = this._getValueToComplete();
 
-    Element.removeClassName(this.inputElement, this.classes.loading);
+//     if (window.console) console.log('updateChoices', value);
 
-    // check if this is a "real" blur, or just a clik on dropdownDiv
-    if (this.dropdownDiv) {
-      var targ;
-      var e = event;
-      if (e.target) targ = e.target;
-      else if (e.srcElement) targ = e.srcElement;
-      if (targ.nodeType && targ.nodeType == 3) // defeat Safari bug
-          targ = targ.parentNode;
-      var x = Event.pointerX(e) || Position.cumulativeOffset(targ)[0];
-      var y = Event.pointerY(e) || Position.cumulativeOffset(targ)[1];
-      if (Position.within(this.dropdownDiv, x, y)) {
-        // not a "real" blur ==> bring focus back to the input element
-        this.inputElement.focus(); // will trigger again this.autocomplete()
-        return;
-      }
-      else {
-        this._removeDropdownDiv();
-      }
+    this._updateChoicesHandler(value, continuation);
+  },
+
+
+  // does the reverse of "autocomplete()"
+  // doesnot fire if input blurred from click on choice list
+  _blurHandler: function(event) { 
+
+    // remove choice list
+    if (this.dropdownDiv)  this._removeDropdownDiv(); 
+
+    // abort any pending ajax call on this input element
+    if (this._runningAjax[this.inputElement.name]) {
+      this._runningAjax[this.inputElement.name].transport.abort();
+      this._runningAjax[this.inputElement.name] = null;
+      Element.removeClassName(this.inputElement, this.classes.loading);
     }
+
+    // if strict mode, inform client about the final status
     if (this.options.strict) {
-      // initially : not OK unless options.blankOK and value is empty
-      var valueOK = this.options.blankOK && this.inputElement.value == "";
+      var value = this._getValueToComplete();
 
-      // if choices are known : check if we have one of them
-      if (this.choiceList) {
-        var index = this.choiceList.currentHighlightedIndex;
-        var legal = this._valueFromChoice(index);
-        valueOK = this.inputElement.value == legal;
+      // if value has changed, invalidate previous list of choices
+      if (value != this.lastValue) {
+        this.choices = null; 
       }
 
-      // else update choices and then check
-      else {
-        var async = this.updateChoices(); 
-        // can only check if in synchronous mode
-        if (!async) {
-          // if got one single choice, take the canonic form of that one
-          if (this.choices.length == 1) { 
-            this.inputElement.value 
-              = this.lastValue
-              = this._valueFromChoice(0); // canonic form
-            this.fireEvent({type: "Complete", index: 0}, this.inputElement); 
-            valueOK = true;
-          }
-
-          // if got many choices and our input is "", check if it belongs there
-          else {
-            //if ( this.inputElement.value == "" && this.choices.length > 1 ) {
-            if ( this.inputElement.value && this.choices.length > 1 ) {
-              for (var i = 0; i < this.choices.length; i++) {
-                //if length of one element of choicelist is same as length of input.value
-                //then they are identical (here no need to check caseSensitive since it is
-                //being done when generating choiceList
-                if (this._valueFromChoice(i).length == this.inputElement.value.length) {
-                  this.inputElement.value 
-                      = this.lastValue
-                      = this._valueFromChoice(i); // canonic form
-                  this.fireEvent({type: "Complete", index: i}, this.inputElement); 
-                  valueOK = true;
-                  break;
-                }
-              }
-            }
-          }
-        }
+      // if blank and blankOK, this is a legal value
+      if (!value && this.options.blankOK) {
+        this._updateDependentFields(this.inputElement, "");
+        this.fireEvent({ type       : "LegalValue", 
+                         value      : "", 
+                         choice     : null,
+                         controller : null  }, this.inputElement);
       }
 
-      if (!valueOK) {
+      // if choices are known, just inspect status
+      else if (this.choices) {            
+        this._fireFinalStatus(this.inputElement, this.choices);
+      }
+
+      // if not enough chars to get valid choices, this is illegal
+      else if (value.length < this.options.minimumChars) {    
         this.inputElement.style.backgroundColor = this.options.colorIllegal;
+        this._updateDependentFields(this.inputElement, null);
+        this.fireEvent({type: "IllegalValue", value: value}, 
+                       this.inputElement);
+      }
+
+      // otherwise get choices and then inspect status (maybe asynchronously)
+      else  {
+        this._updateChoices(this._fireFinalStatus.bind(this, 
+                                                       this.inputElement));
       }
     }
 
-    if(this._runningAjax) this._runningAjax.transport.abort();
     this.fireEvent("Leave", this.inputElement);
     this.inputElement = null;
   },
 
-  _clickHandler: function(event) {
-    var x = event.offsetX || event.layerX; // MSIE || FIREFOX
-    if (x > Element.getDimensions(this.inputElement).width - 20) {
-        if ( this.dropdownDiv )
-            this._removeDropdownDiv(event);
-        else
-            this._keyDownHandler(event);
+  _fireFinalStatus: function (inputElement, choices) {
+  // NOTE: takes inputElement and choices as arguments, because it might be
+  // called asynchronously, after "this" has been detached from the input
+  // element and the choices array, so we cannot call the object properties.
+
+    var input_val = this._getValueToComplete(inputElement.value);
+
+    var index = null;
+
+    // inspect the choice list to automatically choose the appropriate candidate
+    for (var i=0; i < choices.length; i++) {
+        var val = this._valueFromChoiceItem(choices[i]);
+        
+        if (val == input_val) {
+            index = i;
+            break; // break the loop because this is the best choice
+        }
+        else if (val.toUpperCase() == input_val.toUpperCase()) {
+            index = i;  // is a candidate, but we may find a better one
+        }
+    }
+
+    // if automatic choice did not work, but we have only 1 choice, and this is
+    // not blank on purpose, then force it into the field
+    if (index === null && choices.length == 1 
+                       && (input_val || !this.options.blankOK )) 
+        index = 0;
+        
+    if (index !== null) {
+        var choice = choices[index];
+        var val = this._valueFromChoiceItem(choice);
+
+        // put canonical value back into input field
+        this._setValue(val, inputElement);
+
+        // for backwards compatibility, we generate a "Complete" event, but
+        // with a fake controller (as the real controller might be in a 
+        // diffent state).
+        this.fireEvent({ type      : "Complete",
+                         referrer  : "blur",    // input blur fired this event 
+                         index     : index,
+                         choice    : choice,
+                         controller: {choices: choices} }, inputElement);
+
+        // update dependent fields
+        this._updateDependentFields(inputElement, choice);
+
+        // for new code : generate a "LegalValue" event
+        this.fireEvent({ type       : "LegalValue", 
+                         value      : val, 
+                         choice     : choice,
+                         controller : null  }, inputElement);
+
+    }
+    else {
+        inputElement.style.backgroundColor = this.options.colorIllegal;
+        this._updateDependentFields(inputElement, null);
+        this.fireEvent({ type       : "IllegalValue", 
+                         value      : input_val, 
+                         controller : null  }, inputElement);
     }
   },
 
-  _keyDownHandler: function(event) { 
+  _updateDependentFields: function(inputElement, choice) {
+        // "choice" might be 
+        //   - an object or nonempty string ==> update dependent fields
+        //   - an empty string              ==> clear dependent fields
+        //   - null                         ==> put "ILLEGAL_***" 
+        var attr       = inputElement.getAttribute('ac:dependentFields');
+        var dep_fields = attr ? eval("("+attr+")") 
+                              : this.options.dependentFields;
+        if (!dep_fields) return;
+
+        var form       = inputElement.form;
+        var name_parts = inputElement.name.split(/\./);
+        
+        for (var k in dep_fields) {
+            name_parts[name_parts.length - 1] = k;
+            var related_name    = name_parts.join('.');
+            var related_field   = form[related_name];
+            var value_in_choice = dep_fields[k];
+            if (related_field) {
+                related_field.value
+                    = (value_in_choice == "")        ? ""
+                    : (choice === null)              ? "!!ILLEGAL_" + k + "!!"
+                    : (typeof choice == "object")    ? choice[value_in_choice]
+                    : (typeof choice == "string")    ? choice
+                    : "!!UNEXPECTED SOURCE FOR RELATED FIELD!!";
+            }
+        }
+    },
+
+  // if clicking in the 20px right border of the input element, will display
+  // or hide the drowpdown div (like pressing ARROWDOWN or ESC)
+  _clickHandler: function(event) {
+    var x = event.offsetX || event.layerX; // MSIE || FIREFOX
+    if (x > Element.getDimensions(this.inputElement).width - 20) {
+        if ( this.dropdownDiv ) {
+            this._removeDropdownDiv();
+            Event.stop(event);
+        }
+        else
+            this._ArrowDownHandler(event);
+    }
+  },
+
+  _ArrowDownHandler: function(event) { 
     var value = this._getValueToComplete(); 
     var valueLength = (value || "").length; 
     if (valueLength < this.options.minimumChars)
@@ -388,91 +519,143 @@ GvaScript.AutoCompleter.prototype = {
     Event.stop(event);
   },
 
-  _keyPressHandler: function(event) { 
 
-    // after a blur, we still get a keypress, so ignore it
-    if (!this.inputElement) return; 
-    
-    // first give back control so that the inputElement updates itself,
-    // then come back through a timeout to update the Autocompleter
+
+  _keyDownHandler: function(event) { 
+
+    // invalidate previous lists of choices because value may have changed
+    this.choices = null; 
+    this._removeDropdownDiv();
 
     // cancel pending timeouts because we create a new one
     if (this._timeoutId) clearTimeout(this._timeoutId);
 
-    this._timeLastKeyPress = (new Date()).getTime(); 
+    this._timeLastKeyDown = (new Date()).getTime(); 
+//     if (window.console) console.log('keyDown', this._timeLastKeyDown, event.keyCode); 
     this._timeoutId = setTimeout(this._checkNewValue.bind(this), 
-                                 this.options.autoSuggestDelay);
-    // do NOT stop the event here .. inputElement needs to get the event
+                                 this.options.checkNewValDelay);
+
+    // do NOT stop the event here : give back control so that the standard 
+    // browser behaviour can update the value; then come back through a 
+    // timeout to update the Autocompleter
   },
+
 
 
   _checkNewValue: function() { 
-
-    // ignore this keypress if after a blur (no input element)
-    if (!this.inputElement) return; 
+        
+    // abort if the timeout occurs after a blur (no input element)
+    if (!this.inputElement) {
+//       if (window.console) console.log('_checkNewValue ... no input elem');
+      return; 
+    }
 
     // several calls to this function may be queued by setTimeout,
     // so we perform some checks to avoid doing the work twice
-    if (this._timeLastCheck > this._timeLastKeyPress)
+    if (this._timeLastCheck > this._timeLastKeyDown) {
+
+//       if (window.console) console.log('_checkNewValue ... done already ', 
+//                   this._timeLastCheck, this._timeLastKeyDown);
+
       return; // the work was done already
+    }
+
     var now = (new Date()).getTime();
-    var deltaTime = now - this._timeLastKeyPress;
-    if (deltaTime <  this.options.checkvalueDelay) 
+
+    var deltaTime = now - this._timeLastKeyDown;
+    if (deltaTime + this.options.deltaTime_tolerance 
+          <  this.options.checkNewValDelay) {
+
+//       if (window.console) console.log('_checkNewValue ... too young ',
+//                                       now, this._timeLastKeyDown);
+
       return; // too young, let olders do the work
+    }
 
-    // OK, we really have to check the value now
+
     this._timeLastCheck = now;
-    var value = this.inputElement.value; //normal case
-    if (this.options.multivalued) { 
-        var vals = (this.inputElement.value).split(this.separator);
-        var value = vals[-1];
-    }
-    if (value != this.lastValue) {
-      this.lastValue = value;
-      this.choices = null; // value changed, so invalidate previous choices
-      this.choiceList = null;
+    var value = this._getValueToComplete();
+//     if (window.console) 
+//         console.log('_checkNewValue ... real work [value = %o]  - [lastValue = %o] ', 
+//                              value, this.lastValue);
+    this.lastValue = this.lastTypedValue = value;
 
-      if (value.length >= this.options.minimumChars
-          && this.options.autoSuggest)
-        this._displayChoices();
-      else
-        this._removeDropdownDiv();
-    }
+    // create a list of choices if we have enough chars
+    if (value.length >= this.options.minimumChars) {
+
+        // first create a "continuation function"
+        var continuation = function (choices) {
+
+          // if, meanwhile, another keyDown occurred, then abort
+          if (this._timeLastKeyDown > this._timeLastCheck) {
+//             if (window.console) 
+//               console.log('after updateChoices .. abort because of keyDown',
+//                           now, this._timeLastKeyDown);
+            return;
+          }
+          
+          this.choices = choices;
+          if (choices && choices.length > 0) {
+            this.inputElement.style.backgroundColor = ""; // remove colorIllegal
+            if (this.options.autoSuggest)
+              this._displayChoices();
+          }
+          else if (this.options.strict && 
+                   (value || !this.options.blankOK)) {
+            this.inputElement.style.backgroundColor 
+            = this.options.colorIllegal;
+          }
+        };
+
+        // now call updateChoices (which then will call the continuation)
+        this._updateChoices(continuation.bind(this));
+      }
   },
 
-  // return the value to be completed; added for multivalued autocompleters                  
-  _getValueToComplete : function() {
-    var toCompleteVal = this.inputElement.value;
+
+  // return the value to be completed
+  // TODO : for multivalued, should return the value under the cursor,
+  // instead returning sytematically the last value
+  _getValueToComplete : function(value) {
+     // NOTE: the explicit value as argument is only used from 
+     //_fireFinalStatus(), when we can no longer rely on 
+     // this.inputElement.value
+    value = value || this.inputElement.value;
     if (this.options.multivalued) {
-        vals = (this.inputElement.value).split(this.separator);
-        toCompleteVal = vals[vals.length-1].replace(/\s+/, "");
+      var vals = value.split(this.options.multivalue_separator);
+      value    = vals[vals.length-1];
     }
-    return toCompleteVal;
+    return value;
   },
 
-  // set the value of the field; used to set the new value of the field once the user 
-  // pings a choice item 
-  _setValue : function(value) {              
-    if (!this.options.multivalued) {
-        this.inputElement.value = value;
-    } else {
-        var vals = (this.inputElement.value).split(this.separator);
-        var result = (this.separator).exec(this.inputElement.value);
-        if (result) {
-            var user_sep = result[0];
-        }
-        vals[vals.length-1] = value;
-        this.inputElement.value = (vals).join(user_sep); 
+  _setValue : function(value, inputElement) {              
+        // NOTE: the explicit inputelement as argument is only used from 
+        // _fireFinalStatus(), when we can no longer rely on this.inputElement
+
+    if (!inputElement) inputElement = this.inputElement;
+    if (this.options.multivalued) 
+    if (_sep = inputElement.value.match(this.options.multivalue_separator)) {
+      // user-chosen char(s) for separating values
+      var user_sep = _sep[0];
+
+      // replace last value by the one received as argument
+      var vals = inputElement.value.split(this.options.multivalue_separator);
+      vals[vals.length-1] = value;      
+      value = vals.join(user_sep);
     }
-  
+
+    // setting value in input field
+    inputElement.value = this.lastValue = value;
   },
+
+
 
   _typeAhead : function () {
-    var curLen     = this.lastValue.length;
+    var curLen     = this.lastTypedValue.length;
     var index      = this.choiceList.currentHighlightedIndex; 
     var suggestion = this._valueFromChoice(index);
     var newLen     = suggestion.length;
-    this.inputElement.value = suggestion;
+    this._setValue(suggestion);
 
     if (this.inputElement.createTextRange){ // MSIE
       var range = this.inputElement.createTextRange();
@@ -493,6 +676,10 @@ GvaScript.AutoCompleter.prototype = {
   _mkDropdownDiv : function() {
     this._removeDropdownDiv();
 
+    // the autocompleter has been blurred ->
+    // do not display the div
+    if(!this.inputElement) return null;
+
     // if observed element for scroll, reposition
     var movedUpBy = 0;
     var movedLeftBy = 0;
@@ -502,12 +689,12 @@ GvaScript.AutoCompleter.prototype = {
     }
 
     // create div
-    var div    = document.createElement('div');
+    var div = new Element('div');
     div.className = this.classes.dropdown;
 
     // positioning
     var coords = Position.cumulativeOffset(this.inputElement);
-    var dim    = Element.getDimensions(this.inputElement);
+    var dim     = Element.getDimensions(this.inputElement);
     div.style.left      = coords[0] + this.options.offsetX - movedLeftBy + "px";
     div.style.top       = coords[1] + dim.height -movedUpBy + "px";
     div.style.maxHeight = this.options.maxHeight + "px";
@@ -517,15 +704,21 @@ GvaScript.AutoCompleter.prototype = {
     // insert into DOM
     document.body.appendChild(div);
 
-    // simulate maxHeight/minWidth on old MSIE (must be AFTER appendChild())
+    // simulate minWidth on old MSIE (must be AFTER appendChild())
+    // maxHeight cannot be simulated untill displayChoices
     if (navigator.userAgent.match(/\bMSIE [456]\b/)) {
-      div.style.setExpression("height", 
-        "this.scrollHeight>" + this.options.maxHeight + "?" 
-                             + this.options.maxHeight + ":'auto'");
-      div.style.setExpression("width", 
-        "this.scrollWidth<" + this.options.minWidth + "?" 
-                            + this.options.minWidth + ":'auto'");
+      div.style.width  = this.options.minWidth + "px"; 
     }
+   
+    // mouseenter and mouseleave events to control
+    // whether autocompleter has been blurred 
+    var elem = this.inputElement;
+    div.observe('mouseenter', function(e) {
+      Element.stopObserving(elem, "blur", this.reuse.onblur);
+    }.bind(this));
+    div.observe('mouseleave', function(e) {
+      Element.observe(elem, "blur", this.reuse.onblur);
+    }.bind(this));
 
     return this.dropdownDiv = div;
   },
@@ -533,23 +726,16 @@ GvaScript.AutoCompleter.prototype = {
 
 
   _displayChoices: function() {
-    var toCompleteVal = this._getValueToComplete();
-    if (!this.choices) {
-      var asynch = this.updateChoices(toCompleteVal);
-      if (asynch) return; // updateChoices() is responsible for calling back
-    }
 
-    if (this.options.actionItems) {
-      var action = this.options.actionItems;
-      for (var k=0; k < action.length; k++) {
-        var action_label = action[k][this.options.labelField];
-        action[k][this.options.labelField] = "<span class=" + this.classes.action + ">" + action_label + "</span>";
-        this.choices[this.choices.length] = action[k];
-      }
-    }
+    // if no choices are ready, can't display anything
+    if (!this.choices) return;
+
+    var toCompleteVal = this._getValueToComplete();
 
     if (this.choices.length > 0) {
       var ac = this;
+
+      // create a choiceList
       var cl = this.choiceList = new GvaScript.ChoiceList(this.choices, {
         labelField        : this.options.labelField,
         scrollCount       : this.options.scrollCount,
@@ -575,24 +761,49 @@ GvaScript.AutoCompleter.prototype = {
       cl.onCancel = function(event) {
         ac._removeDropdownDiv();
       };
+        
+      // append div to DOM
+      var choices_div = this._mkDropdownDiv();
+      // fill div now so that the keymap gets initialized
+      cl.fillContainer(choices_div);
+      // set height of div for IE6 (no suppport for maxHeight!)
+      if (navigator.userAgent.match(/\bMSIE [456]\b/)) {
+        choices_div.style.height = 
+          (choices_div.scrollHeight > this.options.maxHeight)?
+            this.options.maxHeight + 'px' :
+            'auto';
+      }
 
-      // fill container now so that the keymap gets initialized
-      cl.fillContainer(this._mkDropdownDiv());
+      // determine if there is a space to dislay
+      // the choices list under the input
+      // if not, display above.
+      // onscreen height needed for displaying the choices list
+      var _h_needed  = Element.viewportOffset(this.inputElement)[1] 
+                     + this.inputElement.offsetHeight 
+                     + choices_div.offsetHeight;
+      var _h_avail   = document.viewport.getHeight();
+      // move choices list on top of the input element
+      if(_h_needed >= _h_avail) {  
+        choices_div.style.top = choices_div.offsetTop 
+                              - choices_div.offsetHeight 
+                              - this.inputElement.offsetHeight 
+                              + 'px'; 
+      }
 
-      // playing with the keymap: when tabbing, should behave like RETURN
-      var autocompleter = this;
+      // catch keypress on TAB while choiceList has focus
       cl.keymap.rules[0].TAB = cl.keymap.rules[0].S_TAB = function(event) {
-        if (!autocompleter.options.completeOnTab)
-            return;
         var index = cl.currentHighlightedIndex;
         if (index != undefined) {
+
           var elem = cl._choiceElem(index);
-          // Only return and click events should launch action items
-          if (ac.choices[index]['action'])
-              return;
+
+          // generate a "Ping" on the choiceList, like if user had
+          // pressed RETURN to select the current highlighted item
           cl.fireEvent({type : "Ping", 
                         index: index}, elem, cl.container);
-          // NO Event.stop() here
+
+          // NO Event.stop() here, because the navigator should
+          // do the tabbing (pass focus to next/previous element)
         }
       };
 
@@ -604,25 +815,32 @@ GvaScript.AutoCompleter.prototype = {
       this.displayMessage("pas de suggestion");
   },
 
-
-  _removeDropdownDiv: function(event) { // may be choices div or message div
-    if (this.keymap.rules.length > 1)
-      this.keymap.rules.pop(); // remove navigationRules
-
+  _removeDropdownDiv: function() { 
+    // remove the dropdownDiv that was added previously by _mkDropdownDiv();
+    // that div contained either a menu of choices or a message to the user
     if (this.dropdownDiv) {
+      // remove mouseenter and mouseleave observers
+      this.dropdownDiv.stopObserving();
       Element.remove(this.dropdownDiv);
       this.dropdownDiv = null;
     }
-    if (event) Event.stop(event);
+
+    // if applicable, also remove rules previously pushed by _displayChoices
+    if (this.keymap.rules.length > 1)
+      this.keymap.rules.pop(); 
   },
 
-
   _valueFromChoice: function(index) {
-    if (!this.choices || this.choices.length < 1) return null;
+    if (!this.choices) return null;
     var choice = this.choices[index];
+    return (choice !== null) ? this._valueFromChoiceItem(choice) : null;
+  },
+
+  _valueFromChoiceItem: function(choice) {
     return (typeof choice == "string") ? choice 
                                        : choice[this.options.valueField];
   },
+
 
 
   //triggered by the onPing event on the choicelist, i.e. when the user selects
@@ -630,33 +848,33 @@ GvaScript.AutoCompleter.prototype = {
   _completeFromChoiceElem: function(elem) {
     // identify the selected line and handle it
     var num = parseInt(elem.id.match(/\.(\d+)$/)[1], 10);
-    var choice = this.choices[num];
-    if (!choice && choice!="" && choice!=0) 
-        throw new Error("choice number is out of range : " + num);
-    var action = choice['action'];
-    if (action) {
-        this._removeDropdownDiv(); 
-        eval(action);
-        return;
-    }
 
     // add the value to the input element
     var value = this._valueFromChoice(num);
-    //if (value) {
-      this.lastValue = value;
+    if (value !== null) {
       this._setValue(value)
-//      this.inputElement.value = this.lastValue = value;
-      this.inputElement.jsonValue = choice; //never used elsewhere?!
       this._removeDropdownDiv();
       if (!this.options.multivalued) {
         this.inputElement.select();
       } 
-      this.fireEvent({type: "Complete", index: num}, elem, this.inputElement); 
-    //} else {
-    //}
-    // else WHAT ??
-    //    - might have other things to trigger (JS actions / hrefs)
+
+      this._updateDependentFields(this.inputElement, this.choices[num]);
+
+      this.fireEvent({ type      : "Complete",
+                       referrer  : "select",    // choice selection fired this event 
+                       index     : num,
+                       choice    : this.choices[num],
+                       controller: {choices: this.choices} }, elem, this.inputElement);
+
+      // for new code : generate a "LegalValue" event
+      this.fireEvent({ type      : "LegalValue", 
+                       referrer  : "select",    // choice selection fired this event 
+                       index     : num,
+                       choice    : this.choices[num],
+                       controller: {choices: this.choices} }, elem, this.inputElement);
+    }
   }
 
 }
 
+ 

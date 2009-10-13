@@ -119,9 +119,11 @@ version 1.5.0 or higher
 
 Laurent Dami,  C<< <laurent.d...@etat.ge.ch> >>
 
-Jean-Christophe Durand,  C<< <jean-christophe.d.....@etat.ge.ch> >>
+Mona Remlawi,  C<< <mona.r...@etat.ge.ch> >>
 
-Sébastien Cuendet,  C<< <sebastien.c.....@etat.ge.ch> >>
+Jean-Christophe Durand
+
+Sébastien Cuendet
 
 
 =head1 LICENSE
