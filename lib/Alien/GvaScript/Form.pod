@@ -39,6 +39,14 @@ Class GvaScript.Form - Wrapper around HTML Forms
       ],
       // handlers to form's custom events
       onInit: function(gva_form) {},
+      onRepeatBlockRemove: function(gva_form, arg) {
+        arg[0] // removed repeat name
+        arg[1] // removed repeat path
+      },
+      onRepeatBlockAdd: function(gva_form, arg) {
+        arg[0] // added repeat name
+        arg[1] // added repeat path
+      },
       onChange: function(gva_form, event) {
         // event.target -> element changed
         // event.memo.oldvalue -> changed element's old value
@@ -120,6 +128,28 @@ each item in the array would be passed over to the L</notify> method.
 =item * onInit
 
 function to be called after the successful initialization of the GvaScript.Form instance.
+
+=item * onRepeatBlockRemove
+
+function to be called after a block in a repeated section is removed
+
+Signature
+
+  function onRepeatBlockRemove(gva_form, arg) {
+    // gva_form : GvaScript.Form instance
+    // arg: array containing repeat name as first element and repeat path as second
+  }
+
+=item * onRepeatBlockAdd
+
+function to be called after a block in a repeated section is added
+
+Signature
+
+  function onRepeatBlockAdd(gva_form, arg) {
+    // gva_form : GvaScript.Form instance
+    // arg: array containing repeat name as first element and repeat path as second
+  }
 
 =item * onChange
 
@@ -391,10 +421,15 @@ the C<add> operation.
 
 =head2 remove
 
-  GvaScript.Form.remove(repeat_block);
+  GvaScript.Form.remove(repeat_block[, live_update]);
 
 Removes a repetition block from the DOM. The argument is either
 a DOM element or a string containing the element id.
+
+param C<Boolean> live_update: flag to indicate whether the 'remaining'
+repeatable sections are to be also removed from DOM, recreated by re-merging
+the data with repeat template, then finally re-appended to the DOM.
+Default true.
 
 All repetition blocks above the removed block are renumbered,
 leaving no hole in the index sequence. To do so, these

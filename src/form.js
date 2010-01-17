@@ -165,8 +165,8 @@ GvaScript.Form.Methods = {
     if(container) {
       var target = container.down('[autofocus]');
       // TODO : check if target is visible
-      if (target) try {target.focus()} 
-                      catch(e){}
+      if (target) try {target.activate()} 
+                  catch(e){}
     }
   },
 
@@ -294,9 +294,11 @@ Object.extend(GvaScript.Form.prototype, function() {
                 actionsbar: {},                             // form actions
                 registry: [],                               // list of [elements_selector, event_name, event_handler]
                 
-                onSubmit         : Prototype.emptyFunction,  // method to call on form.submit
-
                 onInit           : Prototype.emptyFunction,  // called after form initialization
+
+                onRepeatBlockRemove : Prototype.emptyFunction,  // called when a repeatable block gets removed
+                onRepeatBlockAdd    : Prototype.emptyFunction,  // called when a repeatable block gets added
+
                 onChange         : Prototype.emptyFunction,  // called if any input/textarea value change
                 onBeforeSubmit   : Prototype.emptyFunction,  // called right after form.submit
                 onSubmit         : Prototype.emptyFunction,  // form submit handler
@@ -367,6 +369,15 @@ Object.extend(GvaScript.Form.prototype, function() {
         // returns id of the form
         getId: function() {
             return this.formElt.identify();
+        },
+
+        // use to submit the for programatically
+        // since the form.submit() doesnot fire the 
+        // onsubmit event. doh!
+        submitForm: function() {
+          // submit method only called if
+          // onBeforeSubmit handler doesnot return false
+          if ( this.fire('BeforeSubmit') ) return this.fire('Submit');
         },
 
         /**
@@ -535,45 +546,65 @@ Object.extend(GvaScript.Form, {
       // wrapped around it
       if(_form) {
         if(_gva_form = GvaScript.Forms.get(_form.identify())) {
+          _gva_form.fire('RepeatBlockAdd', [repeat_name.split('.').last(), last_block]);
           _gva_form.fire('Change');
         }
       }
     }
+    return n_blocks;
   },
 
-  remove: function(repetition_block) {
+  remove: function(repetition_block, live_update) {
+    // default behavior to live update all blocks below
+    // the removed block
+    if(typeof live_update == 'undefined') live_update = true;
+
     // find element and repeat info
     var elem = $(repetition_block);
     elem.id.match(/(.*)\.(\d+)$/);
     var repeat_name = RegExp.$1;
     var remove_ix   = RegExp.$2;
     var form        = elem.up('form');
+    var tree        = {}; // form deserialized as a tree
+                          // only relevant if live_update
 
-    // get form data corresponding to the repeated section (should be an array)
-    var tree  = GvaScript.Form.to_tree(form);
-    var parts = repeat_name.split(/\./);
-    for (var i = 0 ; i < parts.length; i++) {
+    // need to update the data for blocks below
+    // as they have been reproduced
+    if(live_update) {
+      // get form data corresponding to the repeated section (should be an array)
+      tree  = GvaScript.Form.to_tree(form);
+
+      var parts = repeat_name.split(/\./);
+      for (var i = 0 ; i < parts.length; i++) {
         if (!tree) break;
         tree = tree[parts[i]];
-    }
-    
-    // remove rows below, and shift rows above
-    if (tree && tree instanceof Array) {
+      }
+      
+      // remove rows below, and shift rows above
+      if (tree && tree instanceof Array) {
         tree.splice(remove_ix, 1);
         for (var i = 0 ; i < remove_ix; i++) {
-            delete tree[i];
+          delete tree[i];
         }
+      }
     }
 
     // call Repeat.remove() to remove from DOM
-    GvaScript.Repeat.remove(repetition_block);
+    // and if live_update, to remove and reproduce 
+    // the blocks below with correct renumerations
+    GvaScript.Repeat.remove(repetition_block, live_update);
 
-    // re-populate blocks above
-    GvaScript.Form.fill_from_tree(form, repeat_name, tree);
+    // after form tree has been updated
+    // and dom re-populated
+    if(live_update) {
+      // re-populate blocks below
+      GvaScript.Form.fill_from_tree(form, repeat_name, tree);
+    }
 
     // check if form has a GvaSCript.Form instance 
     // wrapped around it
     if(_gva_form = GvaScript.Forms.get(form.identify())) {
+      _gva_form.fire('RepeatBlockRemove', [repeat_name.split('.').last(), repeat_name + '.' + remove_ix]);
       _gva_form.fire('Change');
     }
   }

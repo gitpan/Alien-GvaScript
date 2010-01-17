@@ -548,7 +548,7 @@ just after constructing the tree navigator.</p>
   <div class="TN_node" id="autoScrollPercentage">
     <h5 class="TN_label">autoScrollPercentage</h5>
     <div class="TN_content">
-      <p>Makes sure that the selected is visible in the central area of 
+      <p>Makes sure that the selected node is visible in the central area of 
 its offset parent; if not, the parent is scrolled.
 The percentage is the ratio between the parent height and the 
 margin at which scrolling must occur (default is 20%);</p>
@@ -653,10 +653,12 @@ argument, i.e. are called according to pattern:</p>
 <p>walks up the DOM, starting at <code>elem</code> (which might by any element on
 the page), and opens all nodes found on the way</p>
 </li>
-<li><a name="item__code_select_node___code_"></a><b><code>select(node)</code></b>
+<li><a name="item__code_select_node__prevent_autoscroll___code_"></a><b><code>select(node, prevent_autoscroll)</code></b>
 <p>If there was a selected node, unselect it; then select the argument
 node. The argument can be <code>null</code>, in which case the tree no longer
 has any selected node.</p>
+<p>The second argument <code>prevent_autoscroll</code> is optional; if true,
+no autoscroll will be performed.</p>
 </li>
 <li><a name="item__code_scrollTo_node___code_"></a><b><code>scrollTo(node)</code></b>
 <p>Positions the node in the middle of the screen</p>

@@ -20,9 +20,13 @@ Element.addMethods();
 // flashes an element by adding a classname for a brief moment of time
 // options: {classname: // classname to add (default: flash)
 //           duration:  // duration in ms to keep the classname (default: 100ms)}
-Element.addMethods(['SPAN', 'DIV', 'INPUT', 
+var _element_list = ['DIV', 'INPUT', 
                     'BUTTON', 'TEXTAREA', 'A',
-                    'H1', 'H2', 'H3', 'H4', 'H5'], {
+                    'H1', 'H2', 'H3', 'H4', 'H5'];
+// for the moment, SPAN not supported on WebKit (see prototype.js bug  in
+// https://prototype.lighthouseapp.com/projects/8886/tickets/976-elementaddmethodsspan-fails-on-webkit)
+if (!Prototype.Browser.WebKit) _element_list.push('SPAN');
+Element.addMethods(_element_list, {
     flash: function(element, options) {
         if (element._IS_FLASHING) return;
         element = $(element);
@@ -82,7 +86,7 @@ Hash.flatten = function(deep_hash, prefix, tree) {
     var new_prefix = prefix? prefix + '.' + i : i;
     switch (typeof(v)) {
         case "function": continue; break;
-        case "object"  : Hash.collapse(v, new_prefix, tree); break;
+        case "object"  : Hash.flatten(v, new_prefix, tree); break;
         case "string"  :
         case "number"  : tree["" + new_prefix + ""] = v; break;
         default        : break;
@@ -140,31 +144,21 @@ Object.extend(Element, {
 
   autoScroll: function(elem, container, percentage) {
      percentage = percentage || 20; // default                  
-     var parent = elem.offsetParent;
+     container  = container  || elem.offsetParent;
+
      var offset = elem.offsetTop;
+     var firstElementChild = container.firstElementChild 
+                           || $(container).firstDescendant();
 
-     // offset calculations are buggy in Gecko, so we need a hack here
-     if (/Gecko/.test(navigator.userAgent)) { 
-       parent = elem.parentNode;
-       while (parent) {
-         var overflowY;
-         try      {overflowY = Element.getStyle(parent, "overflowY")}
-         catch(e) {overflowY = "visible";}
-         if (overflowY != "visible") break; // found candidate for offsetParent
-         parent = parent.parentNode;
-       }
-       parent  = parent || document.body;
-       
-       //offset -= parent.offsetTop
-       // commented out Jean-Christophe 18.4.07 
-       // solves a bug with autoCompleters, but new bug with choiceList ..
-       // .. TODO: need to investigate further how firefox handles offsets.
+     if (firstElementChild) {
+       var first_child_offset = firstElementChild.offsetTop;
+       if (first_child_offset == container.offsetTop)
+         offset -= first_child_offset;
      }
-
-     container = container || parent;
 
      var min = offset - (container.clientHeight * (100-percentage)/100);
      var max = offset - (container.clientHeight * percentage/100);
+
      if      (container.scrollTop < min) container.scrollTop = min;
      else if (container.scrollTop > max) container.scrollTop = max;
   },
@@ -231,12 +225,6 @@ function CSSPREFIX () {
     }
     return 'gva';
 }
-
-// escaping RegEx special characters .*+?|()[]{}\
-RegExp.escape = function(str) {
-    var specials = new RegExp("[.*+?|()\\[\\]{}\\\\]", "g");
-    return str.replace(specials, "\\$&");
-}; // do not remove ';'
 
 
 /**
@@ -369,13 +357,13 @@ RegExp.escape = function(str) {
     window[token] = callback;
 
     // url should have "?2" parameter which is to be replaced with a global callback name
-    script.src = url.replace(/\?2(&|$)/, '__jsonp' + id + '$1');
+    script.src = url.replace(/\?(&|$)/, '__jsonp' + id + '$1');
 
     // clean up on load: remove script tag, null script variable and delete global callback function
     script.onload = function() {
       script.remove();
       script = null;
-      delete global[token];
+      delete window[token];
     };
     head.appendChild(script);
     

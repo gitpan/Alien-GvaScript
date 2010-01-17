@@ -61,9 +61,8 @@ The dropdown list can be navigated through arrow keys. Selecting a
 suggestion in the list is done either by a click, or by pressing the
 C<RETURN> key (this is handled by the L<choiceList> component of 
 GvaScript). Then the value of that suggestion fills the input field
-value, the C<jsonValue> property of that field is set to whatever was
-contained in the suggestion object, and the C<onComplete> event is
-triggered.
+value, dependent fields (if any) are updated, and the C<onLegalValue> 
+event is triggered.
 
 A number of Variations on this behaviour may be controlled by the options
 described below.
@@ -213,7 +212,7 @@ If this option is true and the user
 leaves the field with an illegal value
 (not in the suggestion list), 
 the field is marked with a red background.
-Dfault is false.
+Default is false.
 
 =item blankOK
 
@@ -457,6 +456,8 @@ The event only contains a C<value> property (current value in the
 input element). The C<controller> property is null (same reasons
 as C<onLegalValue> above).
 
+return C<true> in onIllegalValue handler to override the illegal behavior; i.e. coloring the 
+input in red and invalidating the dependentFields.
 
 =head2 onHighlight
 

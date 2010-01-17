@@ -51,7 +51,12 @@ GvaScript.Repeat = {
     return repeat.count;
   },
 
-  remove: function(repetition_block) {
+
+  remove: function(repetition_block, live_update) {
+    // default behavior to live update all blocks below
+    // the removed block
+    if(typeof live_update == 'undefined') live_update = true;
+
     // find element, placeholder and repeat info
     var elem = $(repetition_block);
     elem.id.match(/(.*)\.(\d+)$/);
@@ -59,21 +64,30 @@ GvaScript.Repeat = {
     var remove_ix   = RegExp.$2;
     var placeholder = this._find_placeholder(repeat_name);
     var max         = placeholder.repeat.count;
+    
+    // fire onRemove event
+    // remove block from DOM
+    var block = $(repeat_name + "." + remove_ix);
+    placeholder.fireEvent("Remove", block);
+    block.remove();
 
-    // remove the repeat block and all blocks above
-    for (var i = remove_ix; i < max; i++) {
-      var block = $(repeat_name + "." + i);
-      placeholder.fireEvent("Remove", block);
-      block.remove();
+    // if live_update
+    if(live_update) {
+      // update repeat.count as first block has been deleted
       placeholder.repeat.count -= 1;
-    }        
+      // remove all blocks below
+      var _start_ix = remove_ix;
+      while(++_start_ix < max) {
+        block = $(repeat_name + "." + _start_ix);
+        block.remove();
+        placeholder.repeat.count -= 1;
+      }
 
-    // add again the blocks above (which will be renumbered)
-    var n_add = max - remove_ix - 1;
-    if (n_add > 0) this.add(placeholder, n_add);
+      // re-add the blocks above so that they will be renumbered
+      var n_add = max - remove_ix - 1;
+      if (n_add > 0) this.add(placeholder, n_add);
+    }
   },
-
-
 
 //-----------------------------------------------------
 // Private methods

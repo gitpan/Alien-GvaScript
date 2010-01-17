@@ -187,6 +187,14 @@
       ],
       // handlers to form's custom events
       onInit: function(gva_form) {},
+      onRepeatBlockRemove: function(gva_form, arg) {
+        arg[0] // removed repeat name
+        arg[1] // removed repeat path
+      },
+      onRepeatBlockAdd: function(gva_form, arg) {
+        arg[0] // added repeat name
+        arg[1] // added repeat path
+      },
       onChange: function(gva_form, event) {
         // event.target -&gt; element changed
         // event.memo.oldvalue -&gt; changed element's old value
@@ -260,6 +268,24 @@ some differences both in syntax and in semantics.</p>
 </li>
 <li><a name="item_onInit"></a><b>onInit</b>
 <p>function to be called after the successful initialization of the GvaScript.Form instance.</p>
+</li>
+<li><a name="item_onRepeatBlockRemove"></a><b>onRepeatBlockRemove</b>
+<p>function to be called after a block in a repeated section is removed</p>
+<p>Signature</p>
+<pre>  function onRepeatBlockRemove(gva_form, arg) {
+    // gva_form : GvaScript.Form instance
+    // arg: array containing repeat name as first element and repeat path as second
+  }</pre>
+
+</li>
+<li><a name="item_onRepeatBlockAdd"></a><b>onRepeatBlockAdd</b>
+<p>function to be called after a block in a repeated section is added</p>
+<p>Signature</p>
+<pre>  function onRepeatBlockAdd(gva_form, arg) {
+    // gva_form : GvaScript.Form instance
+    // arg: array containing repeat name as first element and repeat path as second
+  }</pre>
+
 </li>
 <li><a name="item_onChange"></a><b>onChange</b>
 <p>function to be called when any of the form's elements has changed or onAdd/onRemove of a repeatable section.</p>
@@ -533,10 +559,14 @@ the <code>add</code> operation.</p>
   <div class="TN_node" id="remove">
     <h3 class="TN_label">remove</h3>
     <div class="TN_content">
-      <pre>  GvaScript.Form.remove(repeat_block);</pre>
+      <pre>  GvaScript.Form.remove(repeat_block[, live_update]);</pre>
 
 <p>Removes a repetition block from the DOM. The argument is either
 a DOM element or a string containing the element id.</p>
+<p>param <code>Boolean</code> live_update: flag to indicate whether the 'remaining'
+repeatable sections are to be also removed from DOM, recreated by re-merging
+the data with repeat template, then finally re-appended to the DOM.
+Default true.</p>
 <p>All repetition blocks above the removed block are renumbered,
 leaving no hole in the index sequence. To do so, these
 blocks are also removed from the DOM, and then added

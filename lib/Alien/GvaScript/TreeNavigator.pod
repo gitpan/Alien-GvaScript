@@ -359,7 +359,7 @@ If true, creates the "+/-" buttons next to labels; default is true.
 
 =head4 autoScrollPercentage
 
-Makes sure that the selected is visible in the central area of 
+Makes sure that the selected node is visible in the central area of 
 its offset parent; if not, the parent is scrolled.
 The percentage is the ratio between the parent height and the 
 margin at which scrolling must occur (default is 20%);
@@ -483,11 +483,15 @@ C<level>; closes nodes underneath
 walks up the DOM, starting at C<elem> (which might by any element on
 the page), and opens all nodes found on the way
 
-=item C<select(node)>
+=item C<select(node, prevent_autoscroll)>
 
 If there was a selected node, unselect it; then select the argument
 node. The argument can be C<null>, in which case the tree no longer
-has any selected node.
+has any selected node. 
+
+The second argument C<prevent_autoscroll> is optional; if true,
+no autoscroll will be performed.
+
 
 =item C<scrollTo(node)>
 

@@ -179,9 +179,8 @@ suggestions from the datasource, and displays them in a dropdown list.</p>
 suggestion in the list is done either by a click, or by pressing the
 <code>RETURN</code> key (this is handled by the <i>choiceList</i> component of 
 GvaScript). Then the value of that suggestion fills the input field
-value, the <code>jsonValue</code> property of that field is set to whatever was
-contained in the suggestion object, and the <code>onComplete</code> event is
-triggered.</p>
+value, dependent fields (if any) are updated, and the <code>onLegalValue</code> 
+event is triggered.</p>
 <p>A number of Variations on this behaviour may be controlled by the options
 described below.</p>
 
@@ -312,7 +311,7 @@ Default is 0.</p>
 leaves the field with an illegal value
 (not in the suggestion list), 
 the field is marked with a red background.
-Dfault is false.</p>
+Default is false.</p>
 </li>
 <li><a name="item_blankOK"></a><b>blankOK</b>
 <p>If this option is defined and false, 
@@ -548,6 +547,8 @@ belongs to the list of available choices.</p>
 <p>The event only contains a <code>value</code> property (current value in the 
 input element). The <code>controller</code> property is null (same reasons
 as <code>onLegalValue</code> above).</p>
+<p>return <code>true</code> in onIllegalValue handler to override the illegal behavior; i.e. coloring the 
+input in red and invalidating the dependentFields.</p>
 
     </div>
   </div>

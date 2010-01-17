@@ -17,7 +17,6 @@ doc/html/ProtoExtensions.html
 doc/html/Repeat.html
 doc/html/toc.html
 doc/html/TreeNavigator.html
-doc/html/WindowExtension.html
 doc/index.html
 GvaScript_Builder.pm
 lib/Alien/GvaScript.pm
@@ -116,8 +115,6 @@ test/images/plus.gif
 test/images/search-small.png
 test/images/selector.gif
 test/images/tn_sprite.png
-test/run_functional_tests.html
-test/run_unit_tests.html
 test/test.css
 test/unit/boilerplate.html
 test/unit/customButtons.html

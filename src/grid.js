@@ -235,7 +235,7 @@ Object.extend(GvaScript.Grid.prototype, function() {
             var list_records = $A(this.records).collect(function(e, index) {
                         return  '<td class="grid-marker">&nbsp;</td>' + 
                                 this.columns.collect(function(c) {
-                                    if(_evalCondition(e, this))
+                                    if(_evalCondition(c, this))
                                     return  '<td class="grid-cell index_'+(index%2)+_compileCss(c)+'" valign="top">' + 
                                             _getColumnValue(c, e) +
                                             '</td>';

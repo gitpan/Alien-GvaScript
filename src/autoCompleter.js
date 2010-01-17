@@ -155,6 +155,7 @@ GvaScript.AutoCompleter.prototype = {
   detach: function(elem) {
     elem._autocompleter = null;
     Element.stopObserving(elem, "blur", this.reuse.onblur);
+    Element.stopObserving(elem, "click", this.reuse.onclick);
     Element.stopObserving(elem, "keydown", elem.onkeydown);
   },
 
@@ -255,6 +256,7 @@ GvaScript.AutoCompleter.prototype = {
     // abort prev ajax request on this input element 
     if (this._runningAjax[inputElement.name])
       this._runningAjax[inputElement.name].transport.abort();
+
     Element.addClassName(inputElement, this.classes.loading);
     
     var complete_url = this._datasource + val_to_complete;
@@ -298,7 +300,7 @@ GvaScript.AutoCompleter.prototype = {
 
   _updateChoicesFromJSONP : function(val_to_complete, continuation) {
       if(val_to_complete) {
-        var _url = this._datasource.json_url.replace(/\?1/, val_to_complete);
+        var _url = this._datasource.json_url.replace(/\?1/, val_to_complete).replace(/\?2/, '?');
         var that = this;
 
         Element.addClassName(that.inputElement, that.classes.loading);
@@ -385,10 +387,14 @@ GvaScript.AutoCompleter.prototype = {
 
       // if not enough chars to get valid choices, this is illegal
       else if (value.length < this.options.minimumChars) {    
-        this.inputElement.style.backgroundColor = this.options.colorIllegal;
-        this._updateDependentFields(this.inputElement, null);
-        this.fireEvent({type: "IllegalValue", value: value}, 
-                       this.inputElement);
+        var return_value = this.fireEvent({
+          type: "IllegalValue", value: value
+        }, this.inputElement);
+        
+        if(! return_value) {
+          this.inputElement.style.backgroundColor = this.options.colorIllegal;
+          this._updateDependentFields(this.inputElement, null);
+        }
       }
 
       // otherwise get choices and then inspect status (maybe asynchronously)
@@ -438,7 +444,7 @@ GvaScript.AutoCompleter.prototype = {
         this._setValue(val, inputElement);
 
         // for backwards compatibility, we generate a "Complete" event, but
-        // with a fake controller (as the real controller might be in a 
+        // with a fake controller (because the real controller might be in a 
         // diffent state).
         this.fireEvent({ type      : "Complete",
                          referrer  : "blur",    // input blur fired this event 
@@ -457,11 +463,16 @@ GvaScript.AutoCompleter.prototype = {
 
     }
     else {
-        inputElement.style.backgroundColor = this.options.colorIllegal;
-        this._updateDependentFields(inputElement, null);
-        this.fireEvent({ type       : "IllegalValue", 
-                         value      : input_val, 
-                         controller : null  }, inputElement);
+        var return_value = this.fireEvent({ 
+          type       : "IllegalValue", 
+          value      : input_val, 
+          controller : null  
+        }, inputElement);
+
+        if(! return_value) {
+          inputElement.style.backgroundColor = this.options.colorIllegal;
+          this._updateDependentFields(inputElement, null);
+        }
     }
   },
 
@@ -600,10 +611,8 @@ GvaScript.AutoCompleter.prototype = {
             if (this.options.autoSuggest)
               this._displayChoices();
           }
-          else if (this.options.strict && 
-                   (value || !this.options.blankOK)) {
-            this.inputElement.style.backgroundColor 
-            = this.options.colorIllegal;
+          else if (this.options.strict && (!this.options.blankOK)) {
+            this.inputElement.style.backgroundColor = this.options.colorIllegal;
           }
         };
 
@@ -629,19 +638,20 @@ GvaScript.AutoCompleter.prototype = {
   },
 
   _setValue : function(value, inputElement) {              
-        // NOTE: the explicit inputelement as argument is only used from 
+        // NOTE: the explicit inputElement as argument is only used from 
         // _fireFinalStatus(), when we can no longer rely on this.inputElement
 
+    // default inputElement is the one bound to this autocompleter
     if (!inputElement) inputElement = this.inputElement;
-    if (this.options.multivalued) 
-    if (_sep = inputElement.value.match(this.options.multivalue_separator)) {
-      // user-chosen char(s) for separating values
-      var user_sep = _sep[0];
 
-      // replace last value by the one received as argument
-      var vals = inputElement.value.split(this.options.multivalue_separator);
-      vals[vals.length-1] = value;      
-      value = vals.join(user_sep);
+    // if multivalued, the completed value replaces the last one in the list
+    if (this.options.multivalued) {
+      var _sep = inputElement.value.match(this.options.multivalue_separator);
+      if (_sep) {
+        var vals = inputElement.value.split(this.options.multivalue_separator);
+        vals[vals.length-1] = value;      
+        value = vals.join(_sep[0]); // join all vals with first separator found
+      }
     }
 
     // setting value in input field
@@ -681,10 +691,10 @@ GvaScript.AutoCompleter.prototype = {
     if(!this.inputElement) return null;
 
     // if observed element for scroll, reposition
-    var movedUpBy = 0;
+    var movedUpBy   = 0;
     var movedLeftBy = 0;
     if (this.observed_scroll) {
-        movedUpBy = this.observed_scroll.scrollTop;
+        movedUpBy   = this.observed_scroll.scrollTop;
         movedLeftBy = this.observed_scroll.scrollLeft;
     }
 
@@ -778,16 +788,17 @@ GvaScript.AutoCompleter.prototype = {
       // the choices list under the input
       // if not, display above.
       // onscreen height needed for displaying the choices list
-      var _h_needed  = Element.viewportOffset(this.inputElement)[1] 
-                     + this.inputElement.offsetHeight 
-                     + choices_div.offsetHeight;
-      var _h_avail   = document.viewport.getHeight();
+      var _h_needed = Element.viewportOffset(this.inputElement)[1] 
+                      + this.inputElement.offsetHeight 
+                      + choices_div.offsetHeight;
+      var _h_avail  = document.viewport.getHeight();
       // move choices list on top of the input element
       if(_h_needed >= _h_avail) {  
-        choices_div.style.top = choices_div.offsetTop 
-                              - choices_div.offsetHeight 
-                              - this.inputElement.offsetHeight 
-                              + 'px'; 
+        var div_top = choices_div.offsetTop 
+                      - choices_div.offsetHeight 
+                      - this.inputElement.offsetHeight;
+        if (div_top >= 0)          
+          choices_div.style.top = div_top + 'px'; 
       }
 
       // catch keypress on TAB while choiceList has focus
@@ -860,21 +871,21 @@ GvaScript.AutoCompleter.prototype = {
 
       this._updateDependentFields(this.inputElement, this.choices[num]);
 
-      this.fireEvent({ type      : "Complete",
-                       referrer  : "select",    // choice selection fired this event 
-                       index     : num,
-                       choice    : this.choices[num],
-                       controller: {choices: this.choices} }, elem, this.inputElement);
-
-      // for new code : generate a "LegalValue" event
-      this.fireEvent({ type      : "LegalValue", 
-                       referrer  : "select",    // choice selection fired this event 
-                       index     : num,
-                       choice    : this.choices[num],
-                       controller: {choices: this.choices} }, elem, this.inputElement);
+      // fire events: "Complete" for backwards compatibility, "LegalValue"
+      // for regular use
+      var eventNames =  ["Complete", "LegalValue"];
+      // for loop : can't use .each() from prototype.js because it alters "this"
+      for (var i = 0; i < eventNames.length; i++) { 
+        this.fireEvent({
+          type      : eventNames[i],
+          referrer  : "select",    // choice selection fired this event 
+          index     : num,
+          choice    : this.choices[num],
+          controller: {choices: this.choices} 
+          }, elem, this.inputElement);
+      }
     }
   }
-
 }
 
  

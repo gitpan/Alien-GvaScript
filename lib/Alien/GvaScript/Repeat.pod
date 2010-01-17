@@ -203,12 +203,17 @@ block is instanciated through C<add('#{foo.path}.bar')>.
 
 =head2 remove
 
-  GvaScript.Repeat.remove(repetition_block)
+  GvaScript.Repeat.remove(repetition_block[, live_update])
 
 Removes a repetition block from the DOM. The argument is either
 a DOM element or a string containing the element id.
 
-All repetition blocks above the removed block are renumbered,
+param C<Boolean> live_update: flag to indicate whether the 'remaining'
+repeatable sections are to be also removed from DOM, recreated by re-merging
+the data with repeat template, then finally re-appended to the DOM.
+Default true.
+
+All repetition blocks below the removed block are renumbered,
 leaving no hole in the index sequence. To do so, these
 blocks are also removed from the DOM, and then added
 again through the L</add> method.

@@ -77,14 +77,9 @@ GvaScript.TreeNavigator = function(elem, options) {
     C_PAGE_UP  : this._ctrlPgUpHandler  .bindAsEventListener(this),
     C_PAGE_DOWN: this._ctrlPgDownHandler.bindAsEventListener(this),
 
-    REGEX      : [[ "", /^\w$/, this._charHandler.bindAsEventListener(this) ]],  
-
-    // to think : do these handlers really belong to Tree.Navigator?
-    PAGE_DOWN:function(event){window.scrollBy(0, document.body.clientHeight/2);
-                              Event.stop(event)},
-    PAGE_UP:  function(event){window.scrollBy(0, - document.body.clientHeight/2);
-                              Event.stop(event)}
+    REGEX      : [[ "", /^\w$/, this._charHandler.bindAsEventListener(this) ]]
   };
+
   if (this.options.tabIndex >= 0)
     keyHandlers["TAB"] = this._tabHandler.bindAsEventListener(this);
 
@@ -248,7 +243,7 @@ GvaScript.TreeNavigator.prototype = {
     }
   },
 
-  select: function (node) {
+  select: function (node, prevent_autoscroll) {
     var previousNode = this.selectedNode;
 
     // re-selecting the current node is a no-op
@@ -262,9 +257,8 @@ GvaScript.TreeNavigator.prototype = {
         }
     }
 
-
-    this.selectedNode = node;
     // select the new node
+    this.selectedNode = node;
     if (node) {
       this._assertNodeOrLeaf(node, 'select node');
       var label = this.label(node);
@@ -279,7 +273,7 @@ GvaScript.TreeNavigator.prototype = {
           if(! label.hasAttribute('hasFocus'))
             label.focus();
             
-          if (this.options.autoScrollPercentage !== null)
+          if (!prevent_autoscroll && this.options.autoScrollPercentage !== null)
             Element.autoScroll(label, 
                                this.rootElement, 
                                this.options.autoScrollPercentage);
@@ -475,7 +469,9 @@ GvaScript.TreeNavigator.prototype = {
       this._treeMouseOutHandler.bindAsEventListener(this));
 
     Event.observe(
-      this.rootElement,  "mousedown",  
+      // observing "mouseup" instead of "click", because "click" 
+      // on MSIE8 only fires when there is a tabindex
+      this.rootElement,  "mouseup", 
       this._treeClickHandler.bindAsEventListener(this));
 
     Event.observe(
@@ -568,7 +564,8 @@ GvaScript.TreeNavigator.prototype = {
     var is_first_click = !is_selected;
 
     // select node if it wasn't
-    if (!is_selected) this.select(node);
+    if (!is_selected) 
+      this.select(node, true); // true: prevent_autoscroll
 
     // should ping : depends on options.noPingOnFirstClick
     var should_ping = (!is_first_click) || !this.options.noPingOnFirstClick;
@@ -811,21 +808,29 @@ GvaScript.TreeNavigator.prototype = {
   },
 
   _kpStarHandler: function (event) {
-    var treeNavigator = this;
-    var target = this.selectedNode || this.rootElement;
-    var nodes = Element.getElementsByClassNames(target, this.classes.node);
-    if (target == this.selectedNode) nodes.unshift(target);
-    nodes.each(function(node) {treeNavigator.open(node)});
-    Event.stop(event);
+    var selectedNode = this.selectedNode;
+    if (selectedNode) {
+      var nodes = Element.getElementsByClassNames(
+        selectedNode,
+        this.classes.node
+      );
+      nodes.unshift(selectedNode);
+      nodes.each(function(node) {this.open(node)}, this);
+      Event.stop(event);
+    }
   },
 
   _kpSlashHandler: function (event) {
-    var treeNavigator = this;
-    var target = this.selectedNode || this.rootElement;
-    var nodes = Element.getElementsByClassNames(target, this.classes.node);
-    if (target == this.selectedNode) nodes.unshift(target);
-    nodes.each(function(node) {treeNavigator.close(node)});
-    Event.stop(event);
+    var selectedNode = this.selectedNode;
+    if (selectedNode) {
+      var nodes = Element.getElementsByClassNames(
+        selectedNode, 
+        this.classes.node
+      );
+      nodes.unshift(selectedNode);
+      nodes.each(function(node) {this.close(node)}, this);
+      Event.stop(event);
+    }
   },
 
   _ctrl_R_handler: function (event) {
@@ -867,6 +872,7 @@ GvaScript.TreeNavigator.prototype = {
     if (node) {
       this.scrollTo(node);
       this.select  (node);
+      Event.stop(event);
     }
   },
 
@@ -877,6 +883,7 @@ GvaScript.TreeNavigator.prototype = {
       if (node) {
         this.scrollTo(node);
         this.select  (node);
+        Event.stop(event);
       }
     }
   },
