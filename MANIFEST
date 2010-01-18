@@ -56,8 +56,6 @@ lib/Alien/GvaScript/Paginator.pod
 lib/Alien/GvaScript/ProtoExtensions.pod
 lib/Alien/GvaScript/Repeat.pod
 lib/Alien/GvaScript/TreeNavigator.pod
-lib/GvaScript.js
-lib/prototype.js
 MANIFEST			This list of files
 META.yml
 README
@@ -89,6 +87,7 @@ test/functional/form/validation.js
 test/functional/grid/simplegrid.html
 test/functional/index.html
 test/functional/keyMap/basic.html
+test/functional/toc.html
 test/functional/treeNavigator/basic.html
 test/functional/treeNavigator/dropdownMenu.html
 test/functional/treeNavigator/dynamic_content.html
@@ -122,4 +121,5 @@ test/unit/grid.html
 test/unit/index.html
 test/unit/protoExtensions.html
 test/unit/resources/_grid_result.json
+test/unit/toc.html
 test/unittest.js

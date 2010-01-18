@@ -41,7 +41,7 @@ sub generate_js { # concatenates sources below into "GvaScript.js"
                    treeNavigator choiceList autoCompleter
                    customButtons paginator grid
                    repeat form/;
-  my $dest = "lib/GvaScript.js";
+  my $dest = "lib/Alien/GvaScript/lib/GvaScript.js";
   chmod 0777, $dest;
   open my $dest_fh, ">$dest"  or die "open >$dest : $!";
 

@@ -1,5 +1,8 @@
 Revision history for Alien-GvaScript
 
+1.21 18.01.2010
+  - bug in Builder, Gvascript.js was written to wrong location
+  
 1.20   07.01.2009
   - Element.autoScroll : fix scroll amount when the scrolling block has
     an offsetTop > 0
