@@ -22,7 +22,7 @@ Object.extend(GvaScript.Grid.prototype, function() {
     function _compileWidth(column) {
         switch (typeof column.width) {
         case 'number': return ' style="width: '+column.width+'px"';
-            case 'string':  
+            case 'string':
                 if(isNaN(column.width)) return ' style="width: '+column.width+'"';
                 else                    return ' style="width: '+column.width+'px"';
             default: return '';
@@ -30,7 +30,7 @@ Object.extend(GvaScript.Grid.prototype, function() {
     }
     function _evalCondition(column, grid) {
         if(typeof column.condition == 'undefined') return true;
-        else 
+        else
         if(typeof column.condition == 'function')  return column.condition(grid);
         else
         if(eval(column.condition))                 return true;
@@ -43,7 +43,7 @@ Object.extend(GvaScript.Grid.prototype, function() {
             default: return '';
         }
     }
- 
+
     return {
         destroy: function() {
             // do not destroy if not initialized !
@@ -72,11 +72,11 @@ Object.extend(GvaScript.Grid.prototype, function() {
             }
 
             this.options = Object.extend(defaults, options || {});
-            
-            this.id                =  id; 
+
+            this.id                =  id;
             this.grid_container    = $(this.options.grid_container);
             this.toolbar_container = $(this.options.toolbar_container);
-            this.columns           = this.options.columns; 
+            this.columns           = this.options.columns;
             this.datasource        = datasource;
             // determine pagesize to send to paginator
             // size is preset
@@ -90,11 +90,11 @@ Object.extend(GvaScript.Grid.prototype, function() {
                 if(typeof this.options.gridheight == 'number') {
                     this.grid_container.setStyle({height: this.options.gridheight+'px'});
                 }
-                // determine dynamically 
+                // determine dynamically
                 else {
                     var parentHeight = this.grid_container.up(0).getHeight();
                     var sibsHeights  = this.grid_container.siblings().collect(function(s) {return s.getHeight()});
-                    
+
                     var sibsHeight   = 0;
                     sibsHeights.each(function(h) {sibsHeight += h});
                     this.grid_container.setStyle({height: parentHeight-sibsHeight+'px'});
@@ -108,21 +108,21 @@ Object.extend(GvaScript.Grid.prototype, function() {
             this.toolbar_container.addClassName(bcss+'-grid-toolbar');
             this.toolbar_container.update();
 
-            this.paginatorbar_container = new Element('div', {'class': bcss+'-paginatorbar'}); 
-            this.actionsbar_container   = new Element('div', {'class': bcss+'-grid-actionsbar'}); 
-            this.toolbar_container.insert(this.paginatorbar_container); 
-            this.toolbar_container.insert(this.actionsbar_container); 
-            
+            this.paginatorbar_container = new Element('div', {'class': bcss+'-paginatorbar'});
+            this.actionsbar_container   = new Element('div', {'class': bcss+'-grid-actionsbar'});
+            this.toolbar_container.insert(this.paginatorbar_container);
+            this.toolbar_container.insert(this.actionsbar_container);
+
             this.dto = _compileDTO(this.options.dto);
             this.paginator = new GvaScript.Paginator(
                 this.datasource, {
-                    list_container  : this.grid_container, 
+                    list_container  : this.grid_container,
                     links_container : this.paginatorbar_container,
 
                     method      : this.options.method,
                     onSuccess   : this.receiveRequest.bind(this),
                     parameters  : this.dto,
-                    step        : this.limit, 
+                    step        : this.limit,
                     timeoutAjax : this.options.requestTimeout,
                     errorMsg    : this.options.errorMsg,
                     lazy        : true
@@ -151,12 +151,12 @@ Object.extend(GvaScript.Grid.prototype, function() {
 
            this.choiceList.onCancel = this.options.onCancel;
            this.choiceList.onPing   = this.pingWrapper.bind(this);
-           
+
            this.paginator.loadContent();
 
            this.grid_container.addClassName(bcss+'-widget');
            this.grid_container.store('widget', this);
-           
+
            GvaScript.Grids.register(this);
         },
 
@@ -171,7 +171,7 @@ Object.extend(GvaScript.Grid.prototype, function() {
         clearToolbar: function() {
             this.toolbar_container.update('');
         },
-        
+
         clearActionButtons: function() {
             this.actionsbar_container.update('');
         },
@@ -188,7 +188,7 @@ Object.extend(GvaScript.Grid.prototype, function() {
         addActionButtons: function() {
             // first clear the actionbuttons container
             this.clearActionButtons();
-            
+
             // append the action buttons
             var actions = this.options.actions.each(function(action_props, index) {
                 // evaluation button condition in the 'this' context
@@ -203,19 +203,19 @@ Object.extend(GvaScript.Grid.prototype, function() {
                 // renders a <button> element and appends it to container
                 new GvaScript.CustomButtons.Button(this.actionsbar_container, action_props);
             }, this);
-        
+
             // activate the navigation over the action buttons
             this.actionButtons = new GvaScript.CustomButtons.ButtonNavigation(this.actionsbar_container, {
-                selectFirstBtn: false, 
+                selectFirstBtn: false,
                 className: bcss+'-btn-container'
             });
         },
-        
+
         // wrapping the recordset in a table with column headers
         gridWrapper: function(html) {
            return '<table class="'+bcss+'-grid '+this.options.css+'">' +
                     '<thead><tr>' +
-                        '<th class="grid-marker">&nbsp;</th>' + 
+                        '<th class="grid-marker">&nbsp;</th>' +
                         (this.columns.collect(function(e) {
                             if(_evalCondition(e, this))
                             return '<th class="grid-header'+_compileCss(e)+'"'+_compileWidth(e)+'>'+e.label+'</th>'
@@ -233,16 +233,16 @@ Object.extend(GvaScript.Grid.prototype, function() {
             this.rights  = response_json.rights || {can_create: 1};
 
             var list_records = $A(this.records).collect(function(e, index) {
-                        return  '<td class="grid-marker">&nbsp;</td>' + 
+                        return  '<td class="grid-marker">&nbsp;</td>' +
                                 this.columns.collect(function(c) {
                                     if(_evalCondition(c, this))
-                                    return  '<td class="grid-cell index_'+(index%2)+_compileCss(c)+'" valign="top">' + 
+                                    return  '<td class="grid-cell index_'+(index%2)+_compileCss(c)+'" valign="top">' +
                                             _getColumnValue(c, e) +
                                             '</td>';
                                     else return '';
-                                }, this).join(''); 
+                                }, this).join('');
             }, this);
-            
+
             // TODO not elegant !
             if(this.choiceList_initialized) {
                 this.choiceList.updateContainer(this.grid_container, list_records);
@@ -252,13 +252,13 @@ Object.extend(GvaScript.Grid.prototype, function() {
                 this.choiceList.fillContainer(this.grid_container);
                 this.choiceList_initialized = true;
             }
-            
+
             if(this.options.grabfocus) {
-                try {this.grid_container.focus();} 
+                try {this.grid_container.focus();}
                 catch(e) {}
             }
-            
-            if(typeof this.actionButtons == 'undefined') 
+
+            if(typeof this.actionButtons == 'undefined')
                 this.addActionButtons();
 
             if(!(this.total > 0)) this.options.onEmpty.apply(this);
@@ -273,7 +273,7 @@ Object.extend(GvaScript.Grid.prototype, function() {
 // registers all grids
 GvaScript.Grids = {
     grids: $A(),
-    
+
     register: function(grid) {
         this.unregister(grid);
         this.grids.push(grid);
@@ -284,7 +284,7 @@ GvaScript.Grids = {
         if(!grid) return;
 
         if(typeof grid == 'string') grid = this.get(grid);
-        
+
         // nothing to unregister
         if(!grid) return false;
 

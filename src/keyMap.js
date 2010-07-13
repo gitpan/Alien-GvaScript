@@ -5,7 +5,7 @@ GvaScript.KeyMap = function (rules) {
     this.rules = [rules];
     return this;
 };
-  
+
 
 GvaScript.KeyMap.prototype = {
   destroy: function() {
@@ -16,7 +16,7 @@ GvaScript.KeyMap.prototype = {
     var keymap = this;
 
     // translate key code into key name
-    event.keyName = GvaScript.KeyMap.KEYS.BUILTIN_NAMES[event.keyCode] 
+    event.keyName = GvaScript.KeyMap.KEYS.BUILTIN_NAMES[event.keyCode]
                  || String.fromCharCode(event.keyCode);
 
     // add Control|Shift|Alt modifiers
@@ -26,7 +26,7 @@ GvaScript.KeyMap.prototype = {
     if (event.altKey   && !this.options.ignoreAlt)   event.keyModifiers += "A_";
 
     // but cancel all modifiers if main key is Control|Shift|Alt
-    if (event.keyName.search(/^(CTRL|SHIFT|ALT)$/) == 0) 
+    if (event.keyName.search(/^(CTRL|SHIFT|ALT)$/) == 0)
       event.keyModifiers = "";
 
     // try to get the corresponding handler, and call it if found
@@ -36,13 +36,13 @@ GvaScript.KeyMap.prototype = {
       Event.detailedStop(event, toStop || this.options);
     }
   },
-    
+
   observe: function(eventType, elem, options) {
     this.eventType = eventType || 'keydown';
     this.elem      = elem      || document;
 
     // "Shift" modifier usually does not make sense for keypress events
-    if (eventType == 'keypress' && !options) 
+    if (eventType == 'keypress' && !options)
       options = {ignoreShift: true};
 
     this.options = Class.checkOptions(Event.stopNone, this.options || {});
@@ -62,7 +62,7 @@ GvaScript.KeyMap.prototype = {
                  || rules[event.keyModifiers + keyCode]
                  || this._regex_handler(event, rules.REGEX, true)
                  || this._regex_handler(event, rules.ANTIREGEX, false);
-      if (handler) 
+      if (handler)
         return handler;
     }
     return null;
@@ -76,15 +76,15 @@ GvaScript.KeyMap.prototype = {
       var regex     = rule[1];
       var handler   = rule[2];
 
-      var same_modifiers = modifiers == null 
+      var same_modifiers = modifiers == null
                         || modifiers == event.keyModifiers;
 
       // build regex if it was passed as a string
-      if (typeof(regex) == "string") 
+      if (typeof(regex) == "string")
         regex = new RegExp("^(" + regex + ")$");
 
       var match = same_modifiers && regex.test(event.keyName);
-      if ((match && want_match) || (!match && !want_match)) 
+      if ((match && want_match) || (!match && !want_match))
         return handler;
     }
     return null;
@@ -112,7 +112,7 @@ GvaScript.KeyMap.Prefix = function(rules) {
 };
 
 // helpers for identifying keys
-GvaScript.KeyMap.KEYS = { 
+GvaScript.KeyMap.KEYS = {
     BUILTIN_NAMES : {
         8: "BACKSPACE",
         9: "TAB",
@@ -182,7 +182,7 @@ GvaScript.KeyMap.KEYS = {
         35  : 'KEY_END',
         33  : 'KEY_PAGEUP',
         34  : 'KEY_PAGEDOWN',
-        45  : 'KEY_INSERT', 
+        45  : 'KEY_INSERT',
         112 : "F1",
         113 : "F2",
         114 : "F3",
@@ -194,6 +194,6 @@ GvaScript.KeyMap.KEYS = {
         120 : "F9",
         121 : "F10",
         122 : "F11",
-        123 : "F12" 
+        123 : "F12"
     }
 }

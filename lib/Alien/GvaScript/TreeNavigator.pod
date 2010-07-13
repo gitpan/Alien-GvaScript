@@ -357,6 +357,14 @@ just after constructing the tree navigator.
 
 If true, creates the "+/-" buttons next to labels; default is true.
 
+=head4 scrollingContainer
+
+The id of the container where the tree overflows.
+Default to C<tree.ownerDocument.documentElement>.
+
+This is used for keyboard tree navigation autoscrolling.
+
+
 =head4 autoScrollPercentage
 
 Makes sure that the selected node is visible in the central area of 

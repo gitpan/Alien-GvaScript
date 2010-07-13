@@ -20,7 +20,7 @@ Element.addMethods();
 // flashes an element by adding a classname for a brief moment of time
 // options: {classname: // classname to add (default: flash)
 //           duration:  // duration in ms to keep the classname (default: 100ms)}
-var _element_list = ['DIV', 'INPUT', 
+var _element_list = ['DIV', 'INPUT',
                     'BUTTON', 'TEXTAREA', 'A',
                     'H1', 'H2', 'H3', 'H4', 'H5'];
 // for the moment, SPAN not supported on WebKit (see prototype.js bug  in
@@ -31,12 +31,12 @@ Element.addMethods(_element_list, {
         if (element._IS_FLASHING) return;
         element = $(element);
 
-        options = options || {}; 
+        options = options || {};
         var duration  = options.duration  || 100;
         var classname = options.classname || 'flash';
 
         element._IS_FLASHING = true;
-        
+
         var endFlash  = function() {
             this.removeClassName(classname);
             this._IS_FLASHING = false;
@@ -77,7 +77,7 @@ Hash.expand = function(flat_hash) {
   return tree.root;
 }
 
-// collapses deep hash into a one level hash 
+// collapses deep hash into a one level hash
 Hash.flatten = function(deep_hash, prefix, tree) {
   tree = tree   || {};
 
@@ -128,13 +128,13 @@ Object.extend(Element, {
   },
 
   // start at elem, walk nav_property until find any of wanted_classes
-  navigateDom: function (elem, navigation_property, 
+  navigateDom: function (elem, navigation_property,
                          wanted_classes, stop_condition) {
     while (elem){
        if (stop_condition && stop_condition(elem)) break;
        if (elem.nodeType == 1 &&
            Element.hasAnyClass(elem, wanted_classes))
-         return elem;
+         return $(elem);
        // else walk to next element
        elem = elem[navigation_property];
      }
@@ -143,24 +143,24 @@ Object.extend(Element, {
 
 
   autoScroll: function(elem, container, percentage) {
-     percentage = percentage || 20; // default                  
-     container  = container  || elem.offsetParent;
+    percentage = percentage || 20; // default
+    container  = container  || elem.offsetParent;
 
-     var offset = elem.offsetTop;
-     var firstElementChild = container.firstElementChild 
-                           || $(container).firstDescendant();
+    var offset = elem.offsetTop;
+    var firstElementChild = container.firstElementChild
+                          || $(container).firstDescendant();
 
-     if (firstElementChild) {
-       var first_child_offset = firstElementChild.offsetTop;
-       if (first_child_offset == container.offsetTop)
-         offset -= first_child_offset;
-     }
+    if (firstElementChild) {
+      var first_child_offset = firstElementChild.offsetTop;
+      if (first_child_offset == container.offsetTop)
+        offset -= first_child_offset;
+    }
 
-     var min = offset - (container.clientHeight * (100-percentage)/100);
-     var max = offset - (container.clientHeight * percentage/100);
+    var min = offset - (container.clientHeight * (100-percentage)/100);
+    var max = offset - (container.clientHeight * percentage/100);
 
-     if      (container.scrollTop < min) container.scrollTop = min;
-     else if (container.scrollTop > max) container.scrollTop = max;
+    if      (container.scrollTop < min) container.scrollTop = min;
+    else if (container.scrollTop > max) container.scrollTop = max;
   },
 
   outerHTML: function(elem) {
@@ -168,7 +168,7 @@ Object.extend(Element, {
     if (!tag)
       return elem;           // not an element node
     if (elem.outerHTML)
-      return elem.outerHTML; // has builtin implementation 
+      return elem.outerHTML; // has builtin implementation
     else {
       var attrs = elem.attributes;
       var str = "<" + tag;
@@ -191,17 +191,17 @@ Class.checkOptions = function(defaultOptions, ctorOptions) {
   }
   return Object.extend(Object.clone(defaultOptions), ctorOptions);
 };
-  
+
 
 Object.extend(Event, {
 
   detailedStop: function(event, toStop) {
-    if (toStop.preventDefault) { 
-      if (event.preventDefault) event.preventDefault(); 
+    if (toStop.preventDefault) {
+      if (event.preventDefault) event.preventDefault();
       else                      event.returnValue = false;
     }
-    if (toStop.stopPropagation) { 
-      if (event.stopPropagation) event.stopPropagation(); 
+    if (toStop.stopPropagation) {
+      if (event.stopPropagation) event.stopPropagation();
       else                       event.cancelBubble = true;
     }
   },
@@ -212,7 +212,7 @@ Object.extend(Event, {
 });
 
 function ASSERT (cond, msg) {
-  if (!cond) 
+  if (!cond)
     throw new Error("Violated assertion: " + msg);
 }
 
@@ -225,6 +225,110 @@ function CSSPREFIX () {
     }
     return 'gva';
 }
+
+/**
+ *
+ * Cross-Browser Split 1.0.1 
+ * (c) Steven Levithan <stevenlevithan.com>; MIT License
+ * in order to fix a bug with String.prototype.split(RegExp) and Internet Explorer
+ * [http://blog.stevenlevithan.com/archives/cross-browser-split]
+ * An ECMA-compliant, uniform cross-browser split method
+ *
+ * */
+
+var cbSplit;
+
+// avoid running twice, which would break `cbSplit._nativeSplit`'s reference to the native `split`
+if (!cbSplit) {
+
+cbSplit = function (str, separator, limit) {
+    // if `separator` is not a regex, use the native `split`
+    if (Object.prototype.toString.call(separator) !== "[object RegExp]") {
+        return cbSplit._nativeSplit.call(str, separator, limit);
+    }
+
+    var output = [],
+        lastLastIndex = 0,
+        flags = (separator.ignoreCase ? "i" : "") +
+                (separator.multiline  ? "m" : "") +
+                (separator.sticky     ? "y" : ""),
+        separator = RegExp(separator.source, flags + "g"), // make `global` and avoid `lastIndex` issues by working with a copy
+        separator2, match, lastIndex, lastLength;
+
+    str = str + ""; // type conversion
+    if (!cbSplit._compliantExecNpcg) {
+        separator2 = RegExp("^" + separator.source + "$(?!\\s)", flags); // doesn't need /g or /y, but they don't hurt
+    }
+
+    /* behavior for `limit`: if it's...
+    - `undefined`: no limit.
+    - `NaN` or zero: return an empty array.
+    - a positive number: use `Math.floor(limit)`.
+    - a negative number: no limit.
+    - other: type-convert, then use the above rules. */
+    if (limit === undefined || +limit < 0) {
+        limit = Infinity;
+    } else {
+        limit = Math.floor(+limit);
+        if (!limit) {
+            return [];
+        }
+    }
+
+    while (match = separator.exec(str)) {
+        lastIndex = match.index + match[0].length; // `separator.lastIndex` is not reliable cross-browser
+
+        if (lastIndex > lastLastIndex) {
+            output.push(str.slice(lastLastIndex, match.index));
+
+            // fix browsers whose `exec` methods don't consistently return `undefined` for nonparticipating capturing groups
+            if (!cbSplit._compliantExecNpcg && match.length > 1) {
+                match[0].replace(separator2, function () {
+                    for (var i = 1; i < arguments.length - 2; i++) {
+                        if (arguments[i] === undefined) {
+                            match[i] = undefined;
+                        }
+                    }
+                });
+            }
+
+            if (match.length > 1 && match.index < str.length) {
+                Array.prototype.push.apply(output, match.slice(1));
+            }
+
+            lastLength = match[0].length;
+            lastLastIndex = lastIndex;
+
+            if (output.length >= limit) {
+                break;
+            }
+        }
+
+        if (separator.lastIndex === match.index) {
+            separator.lastIndex++; // avoid an infinite loop
+        }
+    }
+
+    if (lastLastIndex === str.length) {
+        if (lastLength || !separator.test("")) {
+            output.push("");
+        }
+    } else {
+        output.push(str.slice(lastLastIndex));
+    }
+
+    return output.length > limit ? output.slice(0, limit) : output;
+};
+
+cbSplit._compliantExecNpcg = /()??/.exec("")[1] === undefined; // NPCG: nonparticipating capturing group
+cbSplit._nativeSplit = String.prototype.split;
+
+} // end `if (!cbSplit)`
+
+// for convenience...
+String.prototype.split = function (separator, limit) {
+    return cbSplit(this, separator, limit);
+};
 
 
 /**
@@ -272,7 +376,7 @@ function CSSPREFIX () {
     if(use_capture && Prototype.Browser.IE) {
         eventName = (eventName == 'focus')? 'focusin' : 'focusout';
     }
-    var observer_id = observer.identify ? observer.identify() : 'document'; 
+    var observer_id = observer.identify ? observer.identify() : 'document';
 
     // create entry in cache for rules per observer
     if(! rules[observer_id]) {
@@ -287,11 +391,11 @@ function CSSPREFIX () {
         if(Prototype.Browser.IE)
         Event.observe(observer, eventName, eventManager.curry(observer_id));
         else
-        observer.addEventListener(eventName, eventManager.curry(observer_id), true); 
+        observer.addEventListener(eventName, eventManager.curry(observer_id), true);
       }
       else
       Event.observe(observer, eventName, eventManager.curry(observer_id));
-    }    
+    }
 
     var _selector = [ ], expr = selector.strip();
     // instantiate Selector's
@@ -305,16 +409,16 @@ function CSSPREFIX () {
     // associate handler with expression
     rules[observer_id][eventName][expr].push(handler);
   }
-    
+
   // unregistering an event on an elemment
   Event.unregister = function(elt, selector, eventName) {
     var _id = (typeof elt == 'string')? elt :
-              (elt.identify)? elt.identify() : 'document'; 
+              (elt.identify)? elt.identify() : 'document';
     // unregister event identified by name and selector
     if (eventName) {
       rules[_id][eventName][selector] = null;
       delete rules[_id][eventName][selector];
-    } 
+    }
     else {
       for (var eventName in rules[_id]) {
         // unregister all events identified by selector
@@ -331,7 +435,7 @@ function CSSPREFIX () {
     }
   },
 
-  // unregister *all* events registered using 
+  // unregister *all* events registered using
   // the Event.register method
   Event.unregisterAll = function() {
     for(var _id in rules) {
@@ -344,15 +448,15 @@ function CSSPREFIX () {
   document.register = Event.register.curry(document);
   Element.addMethods({register: Event.register, unregister: Event.unregister});
 })();
-      
+
 // based on:
-// getJSON function by Juriy Zaytsev 
+// getJSON function by Juriy Zaytsev
 // http://github.com/kangax/protolicious/tree/master/get_json.js
 (function(){
   var id = 0, head = $$('head')[0];
   Prototype.getJSON = function(url, callback) {
     var script = document.createElement('script'), token = '__jsonp' + id;
-    
+
     // callback should be a global function
     window[token] = callback;
 
@@ -366,7 +470,7 @@ function CSSPREFIX () {
       delete window[token];
     };
     head.appendChild(script);
-    
+
     // callback name should be unique
     id++;
   }

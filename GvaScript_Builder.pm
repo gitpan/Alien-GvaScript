@@ -62,7 +62,7 @@ sub generate_js { # concatenates sources below into "GvaScript.js"
 
 var GvaScript = {
   Version: '$Alien::GvaScript::VERSION'
-}
+};
 __EOJS__
 
   foreach my $sourcefile (@sources) {

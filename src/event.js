@@ -1,7 +1,7 @@
 // array holding fired events that are pending to be executed
 // useful for avoiding accidental double firing of events
 // events in queue are unique per eventType&eventTarget
-GvaScript.eventsQueue = Class.create(); 
+GvaScript.eventsQueue = Class.create();
 Object.extend(GvaScript.eventsQueue, {
     _queue: $A([]),
     hasEvent: function(target, name) {
@@ -15,11 +15,11 @@ Object.extend(GvaScript.eventsQueue, {
     popEvent: function(target, name) {
         this._queue = this._queue.reject(function(e) {
             return (e.target == target && e.name == name);
-        }); 
+        });
     }
 });
 
-// fireEvent : should be COPIED into controller objects, so that 
+// fireEvent : should be COPIED into controller objects, so that
 // 'this' is properly bound to the controller
 
 GvaScript.fireEvent = function(/* type, elem1, elem2, ... */) {
@@ -27,8 +27,8 @@ GvaScript.fireEvent = function(/* type, elem1, elem2, ... */) {
   var event;
 
   switch (typeof arguments[0]) {
-  case "string" : 
-    event = {type: arguments[0]}; 
+  case "string" :
+    event = {type: arguments[0]};
     break;
   case "object" :
     event = arguments[0];
@@ -36,7 +36,7 @@ GvaScript.fireEvent = function(/* type, elem1, elem2, ... */) {
   default:
     throw new Error("invalid first argument to fireEvent()");
   }
-  
+
   var propName = "on" + event.type;
   var handler;
   var target   = arguments[1]; // first element where the event is triggered
@@ -67,7 +67,7 @@ GvaScript.fireEvent = function(/* type, elem1, elem2, ... */) {
 
     // add the event to the queue, it's about to be fired
     GvaScript.eventsQueue.pushEvent(target, event.type);
-    
+
     var event_return = null; // return value of event execution
     if (typeof(handler) == "string") {
       // string will be eval-ed in a closure context where 'this', 'event',
@@ -82,17 +82,17 @@ GvaScript.fireEvent = function(/* type, elem1, elem2, ... */) {
     }
     else {
       // whatever was returned by the string evaluation
-      event_return = handler; 
+      event_return = handler;
     }
 
     // event executed, pop from the queue
-    // keep a safety margin of 1sec before allowing 
-    // the same event on the same element to be refired 
+    // keep a safety margin of 1sec before allowing
+    // the same event on the same element to be refired
     // TODO: is 1sec reasonable
     window.setTimeout(function() {
         GvaScript.eventsQueue.popEvent(target, event.type)
     }, 1000);
-    
+
     return event_return;
   }
   else

@@ -19,7 +19,7 @@ Object.extend(GvaScript.CustomButtons.Button.prototype, function() {
     function _extendCss(button_options) {
         // basic class
         var button_css = bcss+'-btn-container';
-        
+
         // extended classes
         switch (typeof button_options.css) {
             case 'object': button_css += (' ' + button_options.css.join(' ')); break;
@@ -29,7 +29,7 @@ Object.extend(GvaScript.CustomButtons.Button.prototype, function() {
         button_options.button_css = button_css;
     }
     var _button_template = new Template(
-          '<span class="#{button_css}" id="#{id}">'  
+          '<span class="#{button_css}" id="#{id}">'
         + '<span class="left"></span>'
         + '<span class="center">'
             + '<button type="#{type}" style="width:#{width}" '
@@ -52,7 +52,7 @@ Object.extend(GvaScript.CustomButtons.Button.prototype, function() {
     return {
         destroy: function() {
             // test that element still in DOM
-            if(this.btnElt) this.btnElt.stopObserving('click'); 
+            if(this.btnElt) this.btnElt.stopObserving('click');
         },
         initialize: function(container, options) {
             var defaults = {
@@ -64,7 +64,7 @@ Object.extend(GvaScript.CustomButtons.Button.prototype, function() {
                 label: 'GVA_SCRIPT_BUTTON'
             };
             this.options = Object.extend(defaults, options || {});
-            
+
             if(_evalCondition(this.options.condition)) {
                 try {
                     this.container = $(container);
@@ -101,7 +101,7 @@ Object.extend(GvaScript.CustomButtons.ButtonNavigation.prototype, function() {
                 var nextBtn = this.previousBtn(selectedBtn);
 
                 if (nextBtn) this.select(nextBtn);
-                else         selectedBtn.flash(); 
+                else         selectedBtn.flash();
 
                 Event.stop(event);
             }
@@ -112,7 +112,7 @@ Object.extend(GvaScript.CustomButtons.ButtonNavigation.prototype, function() {
                 var prevBtn = this.nextBtn(selectedBtn);
 
                 if (prevBtn) this.select(prevBtn);
-                else         selectedBtn.flash(); 
+                else         selectedBtn.flash();
 
                 Event.stop(event);
             }
@@ -124,7 +124,7 @@ Object.extend(GvaScript.CustomButtons.ButtonNavigation.prototype, function() {
         }
         function _shiftTabHandler(event) {
             if (this.options.preventListBlur)
-                if (this.isFirst(this.selectedBtn))  
+                if (this.isFirst(this.selectedBtn))
                     Event.stop(event);
         }
         function _homeHandler(event) {
@@ -142,7 +142,7 @@ Object.extend(GvaScript.CustomButtons.ButtonNavigation.prototype, function() {
         function _addHandlers() {
             this.buttons.each(function(btnContainer) {
                 var btn;
-                // if the button is a GvaScript.CustomButtons.BUTTON, then the actual <button> element 
+                // if the button is a GvaScript.CustomButtons.BUTTON, then the actual <button> element
                 // will be embedded and selectable via .btn classname:
                 // <span class="gva-btn-container">
                 //         <span class="left"/>
@@ -155,14 +155,14 @@ Object.extend(GvaScript.CustomButtons.ButtonNavigation.prototype, function() {
                 // </span>
                 // this will be cleaner when all application buttons are transformed into
                 // GvaScript.CustomButtons.Button instances
-                if(btnContainer.tagName.search(/^(INPUT|BUTTON)$/i) > -1) btn = btnContainer; 
+                if(btnContainer.tagName.search(/^(INPUT|BUTTON)$/i) > -1) btn = btnContainer;
                 else {
                     btn = btnContainer.down('.btn');
                     btn.visible        = function() {return btnContainer.visible();}
                     // support focus function on span.buttonContainer
                     btnContainer.focus = function() {btn.focus();}
                 }
-                
+
                 if(typeof btn == 'undefined') return;
 
             }, this);
@@ -192,8 +192,8 @@ Object.extend(GvaScript.CustomButtons.ButtonNavigation.prototype, function() {
                     className           : bcss+'-button'
                 };
                 this.options   = Object.extend(defaults, options || {});
-                this.container = $(container); 
-                
+                this.container = $(container);
+
                 // initializing the keymap
                 var keyHandlers = {
                     LEFT:       _leftHandler     .bindAsEventListener(this),
@@ -205,7 +205,7 @@ Object.extend(GvaScript.CustomButtons.ButtonNavigation.prototype, function() {
                 };
                 this.keymap = new GvaScript.KeyMap(keyHandlers);
                 this.keymap.observe("keydown", container, {
-                    preventDefault:false, 
+                    preventDefault:false,
                     stopPropagation:false
                 });
 
@@ -213,7 +213,7 @@ Object.extend(GvaScript.CustomButtons.ButtonNavigation.prototype, function() {
                 // visibility jump over hidden ones when navigating
                 this.buttons = this.container.select('.'+this.options.className);
                 _addHandlers.call(this);
-                
+
                 if (this.options.selectFirstBtn) {
                     if(firstButObj = this.firstBtn()) {
                         this.select(firstButObj);
@@ -230,8 +230,8 @@ Object.extend(GvaScript.CustomButtons.ButtonNavigation.prototype, function() {
             select: function (btn) {
                 var previousBtn = this.selectedBtn || null;
                 if (previousBtn === btn) return; // selection already handled
-                
-                // blur the previously selected button 
+
+                // blur the previously selected button
                 if (previousBtn) {
                     previousBtn.removeClassName('btn-focus');
                 }
@@ -239,14 +239,14 @@ Object.extend(GvaScript.CustomButtons.ButtonNavigation.prototype, function() {
                 if (btn) {
                     btn.addClassName('btn-focus');
                     try {
-                        if(btn.tagName.search(/^(INPUT|BUTTON)$/i) > -1) 
+                        if(btn.tagName.search(/^(INPUT|BUTTON)$/i) > -1)
                             btn.focus();
-                        else                                             
+                        else
                             btn.down('.btn').focus();
                     } catch (err) {}
                 }
             },
-            // returns the next visible button 
+            // returns the next visible button
             // null if none exists
             nextBtn: function (btn) {
                 var _idx = this.buttons.indexOf(btn);
@@ -265,7 +265,7 @@ Object.extend(GvaScript.CustomButtons.ButtonNavigation.prototype, function() {
 
                 do    _prevBtn = this.buttons[--_idx]
                 while(_prevBtn && !(_prevBtn.visible()));
-                
+
                 return _prevBtn;
             },
             isFirst: function(btn) { return btn == this.firstBtn() },
@@ -304,9 +304,9 @@ Object.extend(GvaScript.CustomButtons.ActionsBar.prototype, {
             // renders a <button> element and appends it to container
             new GvaScript.CustomButtons.Button(this.container, action_props);
         }, this);
-        
+
         this.buttonNavigation = new GvaScript.CustomButtons.ButtonNavigation(this.container, {
-            selectFirstBtn: this.options.selectfirst, 
+            selectFirstBtn: this.options.selectfirst,
             className: bcss+'-btn-container'
         });
 

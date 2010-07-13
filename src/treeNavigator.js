@@ -8,7 +8,7 @@ GvaScript.TreeNavigator = function(elem, options) {
   // http://www.bazon.net/mishoo/articles.epl?art_id=958
   // http://misterpixel.blogspot.com/2006/09/forensic-analysis-of-ie6.html
   try { document.execCommand("BackgroundImageCache",false,true); }
-  catch(e) {}; 
+  catch(e) {};
 
   elem = $(elem); // in case we got an id instead of an element
   options = options || {};
@@ -24,6 +24,7 @@ GvaScript.TreeNavigator = function(elem, options) {
     noPingOnFirstClick  : false,
     selectFirstNode     : true,
     createButtons       : true,
+    scrollingContainer  : elem.ownerDocument.documentElement,
     autoScrollPercentage: 20,
     classes             : {},
     keymap              : null
@@ -106,7 +107,7 @@ GvaScript.TreeNavigator = function(elem, options) {
 
   this.rootElement.store('widget', this);
   this.rootElement.addClassName(CSSPREFIX() + '-widget');
- 
+
   // selecting the first node
   if (this.options.selectFirstNode) {
     this.select(this.firstSubNode());
@@ -144,7 +145,7 @@ GvaScript.TreeNavigator.prototype = {
     if (this.options.createButtons) {
       var button = document.createElement("span");
       button.className = this.classes.button;
-          
+
       labels.each(function(label) {
         label.parentNode.insertBefore(button.cloneNode(true), label);
       });
@@ -152,11 +153,11 @@ GvaScript.TreeNavigator.prototype = {
   },
 
   isClosed: function (node) {
-    return Element.hasAnyClass(node, this.classes.closed); 
+    return Element.hasAnyClass(node, this.classes.closed);
   },
 
   isVisible: function(elem) { // true if elem is not display:none
-    return elem.offsetTop > -1;
+    return !(elem.offsetWidth == 0 && elem.offsetHeight == 0);
   },
 
   isLeaf: function(node) {
@@ -168,16 +169,16 @@ GvaScript.TreeNavigator.prototype = {
   },
 
   isLabel: function(elem) {
-    if(elem.hasClassName(this.classes.label)) 
+    if(elem.hasClassName(this.classes.label))
       return elem;
-    else 
-      return Element.navigateDom(elem, 'parentNode', this.classes.label); 
+    else
+      return Element.navigateDom(elem, 'parentNode', this.classes.label);
   },
 
   close: function (node) {
     if (this.isLeaf(node))
       return;
-    Element.addClassName(node, this.classes.closed);             
+    Element.addClassName(node, this.classes.closed);
     this.fireEvent("Close", node, this.rootElement);
   },
 
@@ -186,9 +187,19 @@ GvaScript.TreeNavigator.prototype = {
       return;
 
     Element.removeClassName(node, this.classes.closed);
-    this.fireEvent("Open", node, this.rootElement);
-    if (!this.content(node))
+
+    var node_content = this.content(node);
+    // if inline content, adjust scrollbar to make visible (if necessary)
+    // FIXME: only works for default scrollingContainer
+    if (node_content) {
+       this.scrollTo(node, true);
+    }
+    // ajax content -> go get it
+    else {
       this.loadContent(node);
+    }
+
+    this.fireEvent("Open", node, this.rootElement);
   },
 
   toggle: function(node) {
@@ -243,7 +254,7 @@ GvaScript.TreeNavigator.prototype = {
     }
   },
 
-  select: function (node, prevent_autoscroll) {
+  select: function (node) {
     var previousNode = this.selectedNode;
 
     // re-selecting the current node is a no-op
@@ -272,11 +283,6 @@ GvaScript.TreeNavigator.prototype = {
           // focus has not yet been given to label
           if(! label.hasAttribute('hasFocus'))
             label.focus();
-            
-          if (!prevent_autoscroll && this.options.autoScrollPercentage !== null)
-            Element.autoScroll(label, 
-                               this.rootElement, 
-                               this.options.autoScrollPercentage);
         }
       }
     }
@@ -286,21 +292,69 @@ GvaScript.TreeNavigator.prototype = {
 
     // register code to call the selection handlers after some delay
     var callback = this._selectionTimeoutHandler.bind(this, previousNode);
-    this._selectionTimeoutId = 
+    this._selectionTimeoutId =
       setTimeout(callback, this.options.selectDelay);
   },
 
-  scrollTo: function(node) {
+  scrollTo: function(node, with_content) {
+    if(!node) return;
+
+    var container = this.options.scrollingContainer;
+    if(typeof container == 'string') {
+      container = $(container);
+    }
+    if(!container) return;
+
     // donot invoke scroll if scrolling is disabled
-    // on document body
-    if(document.body.style.overflow == 'hidden'
-      || document.body.style.overflowY == 'hidden'
-      || document.body.scroll == 'no') // IE 
+    // first test if scrolling is enabled on the scrolling container
+    if(container.tagName.toLowerCase() == 'html') {
+      // on document body
+      if(document.body.style.overflow == 'hidden'
+        || document.body.style.overflowY == 'hidden'
+        || document.body.scroll == 'no') // IE
+      return;
+    }
+    else {
+      // on element
+      if(container.style.overflow == 'hidden'
+        || container.style.overflowY == 'hidden')
+      return;
+    }
+
+    // test if the node in 'in view'
+    _container_y_start = container.scrollTop;
+    _container_y_end   = _container_y_start + container.clientHeight;
+    _node_y  = Element.cumulativeOffset(node).top + (with_content? node.offsetHeight: 0);
+
+    // calculate padding space between the selected node and
+    // the edge of the scrollable container
+    _perc = this.options.autoScrollPercentage || 0;
+    _padding = container.clientHeight * _perc / 100;
+
+    // calculate delta scroll to affect on scrollingContainer
+    _delta = 0;
+
+    // node is beneath scrolling area
+    if(_node_y > _container_y_end - _padding) {
+      _delta = _node_y - _container_y_end + _padding;
+    }
+
+    // node is above scrolling area
+    if(_node_y < _container_y_start + _padding) {
+      _delta = _container_y_start - _node_y - _padding;
+    }
+
+    if(_delta != 0) {
+      // amount required to scroll to greater than available document height
+      if(_delta > container.clientHeight - _padding) {
+        // make label top
+        var lbl_pos = Element.cumulativeOffset(this.label(node)).top;
+        container.scrollTop = lbl_pos - _padding;
+      }
+      else
+      container.scrollTop += parseInt(_delta)
+    }
     return;
-    
-    window.scrollTo(0, 
-                    Element.cumulativeOffset(node).top 
-                    - document.viewport.getHeight()/2); 
   },
 
   label: function(node) {
@@ -319,7 +373,7 @@ GvaScript.TreeNavigator.prototype = {
   parentNode: function (node) {
     this._assertNodeOrLeaf(node, 'parentNode: arg type');
     return Element.navigateDom(
-      node.parentNode, 'parentNode', this.classes.node, 
+      node.parentNode, 'parentNode', this.classes.node,
       this.isRootElement.bind(this));
   },
 
@@ -327,19 +381,19 @@ GvaScript.TreeNavigator.prototype = {
     this._assertNodeOrLeaf(node, 'nextSibling: arg type');
     return Element.navigateDom(node.nextSibling, 'nextSibling',
                                this.classes.nodeOrLeaf);
-                                 
+
   },
 
   previousSibling: function (node) {
     this._assertNodeOrLeaf(node, 'previousSibling: arg type');
     return Element.navigateDom(node.previousSibling, 'previousSibling',
                                this.classes.nodeOrLeaf);
-                                 
+
   },
 
   firstSubNode: function (node) {
     node = node || this.rootElement;
-    var parent = (node == this.rootElement) ? node 
+    var parent = (node == this.rootElement) ? node
                : this.isLeaf(node)          ? null
                :                              this.content(node);
     return parent ? Element.navigateDom(parent.firstChild, 'nextSibling',
@@ -349,7 +403,7 @@ GvaScript.TreeNavigator.prototype = {
 
   lastSubNode: function (node) {
     node = node || this.rootElement;
-    var parent = (node == this.rootElement) ? node 
+    var parent = (node == this.rootElement) ? node
                : this.isLeaf(node)          ? null
                :                              this.content(node);
     return parent ? Element.navigateDom(parent.lastChild, 'previousSibling',
@@ -376,15 +430,15 @@ GvaScript.TreeNavigator.prototype = {
       var firstSubNode = this.firstSubNode(node);
       if (firstSubNode) return firstSubNode;
     }
-	
-    // case 2: current node or one of its parents has a sibling 
+
+    // case 2: current node or one of its parents has a sibling
     while (node) {
       var sibling = this.nextSibling(node);
 
       if (sibling) {
-        if (this.isVisible(sibling)) 
+        if (this.isVisible(sibling))
           return sibling;
-        else 
+        else
           node = sibling;
       }
       else
@@ -412,7 +466,7 @@ GvaScript.TreeNavigator.prototype = {
 
   enclosingNode:  function (elem) {
     return Element.navigateDom(
-      $(elem), 'parentNode', this.classes.nodeOrLeaf, 
+      $(elem), 'parentNode', this.classes.nodeOrLeaf,
       this.isRootElement.bind(this));
   },
 
@@ -434,7 +488,7 @@ GvaScript.TreeNavigator.prototype = {
     args.push(this.rootElement);
     return GvaScript.fireEvent.apply(this, args);
   },
-  
+
 //-----------------------------------------------------
 // Private methods
 //-----------------------------------------------------
@@ -443,11 +497,11 @@ GvaScript.TreeNavigator.prototype = {
   // - clear navi_word
   // - clear match result
   _clear_quick_navi: function() {
-    if(this._quick_navi_mode !== false) 
+    if(this._quick_navi_mode !== false)
       window.clearTimeout(this._quick_navi_mode);
 
     this._quick_navi_mode  = false;  // quick_navi mode active (navi timer)
-    this._quick_navi_word  = "";     // word to navigate to 
+    this._quick_navi_word  = "";     // word to navigate to
     this.labels_array      = null;   // tree labels array
   },
 
@@ -461,21 +515,21 @@ GvaScript.TreeNavigator.prototype = {
 
   _addHandlers: function() {
     Event.observe(
-      this.rootElement,  "mouseover", 
+      this.rootElement,  "mouseover",
       this._treeMouseOverHandler.bindAsEventListener(this));
-    
+
     Event.observe(
-      this.rootElement,  "mouseout",  
+      this.rootElement,  "mouseout",
       this._treeMouseOutHandler.bindAsEventListener(this));
 
     Event.observe(
-      // observing "mouseup" instead of "click", because "click" 
+      // observing "mouseup" instead of "click", because "click"
       // on MSIE8 only fires when there is a tabindex
-      this.rootElement,  "mouseup", 
+      this.rootElement,  "mouseup",
       this._treeClickHandler.bindAsEventListener(this));
 
     Event.observe(
-      this.rootElement,  "dblclick",  
+      this.rootElement,  "dblclick",
       this._treeDblClickHandler.bindAsEventListener(this));
   },
 
@@ -491,9 +545,9 @@ GvaScript.TreeNavigator.prototype = {
     var target = Event.element(event);
     // IE: click on disabled input will fire the event
     // with event.srcElement null
-    if(target.nodeType != 1) return; 
+    if(target.nodeType != 1) return;
 
-    // ignore right mousedown 
+    // ignore right mousedown
     if(!Event.isLeftClick(event)) return;
 
     // button clicked
@@ -530,7 +584,7 @@ GvaScript.TreeNavigator.prototype = {
 
   _treeMouseOverHandler: function(event) {
     var target = Event.element(event);
-    if(target.nodeType != 1) return; 
+    if(target.nodeType != 1) return;
 
     if(label = this.isLabel(target)) {
       Element.addClassName(label, this.classes.mouse);
@@ -540,7 +594,7 @@ GvaScript.TreeNavigator.prototype = {
 
   _treeMouseOutHandler: function(event) {
     var target = Event.element(event);
-    if(target.nodeType != 1) return; 
+    if(target.nodeType != 1) return;
 
     if(label = this.isLabel(target)) {
       Element.removeClassName(label, this.classes.mouse);
@@ -564,8 +618,7 @@ GvaScript.TreeNavigator.prototype = {
     var is_first_click = !is_selected;
 
     // select node if it wasn't
-    if (!is_selected) 
-      this.select(node, true); // true: prevent_autoscroll
+    if (!is_selected) this.select(node);
 
     // should ping : depends on options.noPingOnFirstClick
     var should_ping = (!is_first_click) || !this.options.noPingOnFirstClick;
@@ -576,7 +629,7 @@ GvaScript.TreeNavigator.prototype = {
     event_stop_mode = this.fireEvent("Ping", node, this.rootElement);
 
     // avoid a second ping from the dblclick handler
-    this.should_ping_on_dblclick = !should_ping; 
+    this.should_ping_on_dblclick = !should_ping;
 
     // stop the event unless the ping_handler decided otherwise
     Event.detailedStop(event, event_stop_mode || Event.stopAll);
@@ -597,11 +650,10 @@ GvaScript.TreeNavigator.prototype = {
 
       var node  = Element.navigateDom(label, 'parentNode',
                                       treeNavigator.classes.nodeOrLeaf);
-                                                  
+
       // not yet been selected
       if(node && !label.hasClassName(treeNavigator.classes.selected)) {
-        treeNavigator.scrollTo(node); 
-        treeNavigator.select  (node); 
+        treeNavigator.select  (node);
       }
     };
 
@@ -614,7 +666,7 @@ GvaScript.TreeNavigator.prototype = {
       treeNavigator.select(null);
     };
 
-    // focus and blur do not bubble 
+    // focus and blur do not bubble
     // workaround per browser
     focus_handler = focus_handler.bindAsEventListener(this);
     blur_handler  = blur_handler.bindAsEventListener(this);
@@ -635,7 +687,7 @@ GvaScript.TreeNavigator.prototype = {
 
       // fire events
       if (previousNode != newNode) {
-        if (previousNode) { 
+        if (previousNode) {
           this.fireEvent("Deselect", previousNode, this.rootElement);
         }
         if (newNode) {
@@ -652,8 +704,8 @@ GvaScript.TreeNavigator.prototype = {
     var selectedNode = this.selectedNode;
     if(! selectedNode) return;
 
-    // stop firefox quick search if enabled 
-    // via "accessibility.typeaheadfind" => 'true' 
+    // stop firefox quick search if enabled
+    // via "accessibility.typeaheadfind" => 'true'
     Event.stop(event);
 
     this._quick_navi_word += event.keyName; // always uppercase
@@ -672,13 +724,13 @@ GvaScript.TreeNavigator.prototype = {
     // activate a new timer
     this._quick_navi_mode = window.setTimeout(function() {
       this._clear_quick_navi();
-    }.bind(this), 800);    
+    }.bind(this), 800);
 
     var selectedLabel = this.label(selectedNode);
     var selectedIndex = this.labels_array.indexOf(selectedLabel);
     // partitions the labels array into 2 arrays
     // 1: preceeding labels & selectedNode if not in quick_navi_mode
-    // 2: following labels  & selectedNode if in quick_navi_mode 
+    // 2: following labels  & selectedNode if in quick_navi_mode
     var labels = this.labels_array.partition(function(l, index) {
         // quick-navi mode
         if(is_quick_navi_mode) return index < selectedIndex;
@@ -697,7 +749,7 @@ GvaScript.TreeNavigator.prototype = {
     }
 
     // first look ahead then look back
-    var matching_label  =  find_match(labels[1], this._quick_navi_word) 
+    var matching_label  =  find_match(labels[1], this._quick_navi_word)
                         || find_match(labels[0], this._quick_navi_word);
 
     // found a match -> make it visible and select it
@@ -738,7 +790,7 @@ GvaScript.TreeNavigator.prototype = {
         this.select  (prevNode);
       }
       else this.flash(selectedNode);
-      
+
       Event.stop(event);
     }
     // otherwise: do nothing and let default behaviour happen
@@ -747,17 +799,17 @@ GvaScript.TreeNavigator.prototype = {
   _leftHandler: function (event) {
     var selectedNode = this.selectedNode;
     if (selectedNode) {
-      if (!this.isLeaf(selectedNode) && !this.isClosed(selectedNode)) { 
+      if (!this.isLeaf(selectedNode) && !this.isClosed(selectedNode)) {
         this.close(selectedNode);
-      } 
+      }
       else {
-        var zparent = this.parentNode(selectedNode); 
-        if (zparent) { 
-          this.scrollTo(zparent); 
-          this.select  (zparent); 
+        var zparent = this.parentNode(selectedNode);
+        if (zparent) {
+          this.scrollTo(zparent);
+          this.select  (zparent);
         }
         else
-          this.flash(selectedNode); 
+          this.flash(selectedNode);
       }
       Event.stop(event);
     }
@@ -770,8 +822,8 @@ GvaScript.TreeNavigator.prototype = {
       if (this.isClosed(selectedNode))
         this.open(selectedNode);
       else {
-        var subNode = this.firstSubNode(selectedNode); 
-        if (subNode) { 
+        var subNode = this.firstSubNode(selectedNode);
+        if (subNode) {
           this.scrollTo(subNode);
           this.select  (subNode);
         }
@@ -824,7 +876,7 @@ GvaScript.TreeNavigator.prototype = {
     var selectedNode = this.selectedNode;
     if (selectedNode) {
       var nodes = Element.getElementsByClassNames(
-        selectedNode, 
+        selectedNode,
         this.classes.node
       );
       nodes.unshift(selectedNode);
@@ -891,7 +943,7 @@ GvaScript.TreeNavigator.prototype = {
   _chooseLevel: function(event) {
     var level = event.keyCode - "0".charCodeAt(0);
     this.openAtLevel(this.rootElement, level);
-    
+
     // stop the default Ctrl-num event
     // FF: jump to tab#num
     // IE: Ctrl-5 Select-All

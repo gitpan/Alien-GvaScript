@@ -112,6 +112,7 @@ of the given class names.
     = Element.navigateDom(startElement, direction, wantedClasses,
                           stopCondition);
 
+Returns an extended (prototype's C<Element.extend()>) copy of HTMLElement.
 
 Walks through the DOM in the given direction, until finding an
 element that has one of the given classnames, or finding a stop

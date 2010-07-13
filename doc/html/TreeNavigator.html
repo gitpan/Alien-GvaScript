@@ -103,6 +103,10 @@
   <div class="TN_content"></div>
 </div>
 <div class="TN_leaf">
+  <a class="TN_label" href="#scrollingContainer">scrollingContainer</a>
+  <div class="TN_content"></div>
+</div>
+<div class="TN_leaf">
   <a class="TN_label" href="#autoScrollPercentage">autoScrollPercentage</a>
   <div class="TN_content"></div>
 </div>
@@ -542,6 +546,15 @@ just after constructing the tree navigator.</p>
     <h5 class="TN_label">createButtons</h5>
     <div class="TN_content">
       <p>If true, creates the "+/-" buttons next to labels; default is true.</p>
+
+    </div>
+  </div>
+  <div class="TN_node" id="scrollingContainer">
+    <h5 class="TN_label">scrollingContainer</h5>
+    <div class="TN_content">
+      <p>The id of the container where the tree overflows.
+Default to <code>tree.ownerDocument.documentElement</code>.</p>
+<p>This is used for keyboard tree navigation autoscrolling.</p>
 
     </div>
   </div>

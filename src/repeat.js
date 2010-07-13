@@ -23,7 +23,7 @@ GvaScript.Repeat = {
     // regex substitutions to build html for the new repetition block (can't
     // use Template.replace() because we need structured namespaces)
     var regex       = new RegExp("#{" + repeat.name + "\\.(\\w+)}", "g");
-    var replacement = function ($0, $1){var s = repeat[$1]; 
+    var replacement = function ($0, $1){var s = repeat[$1];
                                         return s == undefined ? "" : s};
 
     while (count-- > 0 && repeat.count < repeat.max) {
@@ -37,7 +37,7 @@ GvaScript.Repeat = {
       // insert into the DOM
       placeholder.insert({before:html});
       var insertion_block = $(repeat.path);
-  
+
       // repetition block gets an event
       placeholder.fireEvent("Add", insertion_block);
 
@@ -64,7 +64,7 @@ GvaScript.Repeat = {
     var remove_ix   = RegExp.$2;
     var placeholder = this._find_placeholder(repeat_name);
     var max         = placeholder.repeat.count;
-    
+
     // fire onRemove event
     // remove block from DOM
     var block = $(repeat_name + "." + remove_ix);
@@ -96,7 +96,7 @@ GvaScript.Repeat = {
   _find_placeholder: function(name) {
     if (typeof name == "string" && !name.match(/.placeholder$/))
         name += ".placeholder";
-    var placeholder = $(name); 
+    var placeholder = $(name);
     if (!placeholder) throw new Error("no such element: " + name);
     return placeholder;
   },
@@ -139,8 +139,8 @@ GvaScript.Repeat = {
     repeat.path  = (path ? path + "." : "") + repeat.name;
 
     // create a new element (placeholder for new insertion blocks)
-    var placeholder_tag = element.tagName.match(/^(TR|TD|TBODY|THEAD|TH)$/i) 
-                          ? element.tagName 
+    var placeholder_tag = element.tagName.match(/^(TR|TD|TBODY|THEAD|TH)$/i)
+                          ? element.tagName
                           : 'SPAN';
     var placeholder     = document.createElement(placeholder_tag);
     placeholder.id = repeat.path + ".placeholder";
@@ -169,7 +169,7 @@ GvaScript.Repeat = {
     // store all properties within the placeholder
     placeholder.repeat = repeat;
 
-    // create initial repetition blocks 
+    // create initial repetition blocks
     this.add(placeholder, n_blocks);
   }
 

@@ -10,7 +10,7 @@ Object.extend(GvaScript.Paginator.prototype, function() {
              + "<div class='first' title='Première page'></div>";
 
 
-    function _toggleNavigatorsVisibility() {                           
+    function _toggleNavigatorsVisibility() {
         if(this.hasPrevious()) {
             this.back.removeClassName('inactive');
             this.first.removeClassName('inactive');
@@ -33,20 +33,20 @@ Object.extend(GvaScript.Paginator.prototype, function() {
     function _addPaginationElts() {
         // append the pagination buttons
         this.links_container.insert(pagination_buttons);
-        
+
         this.first    = this.links_container.down('.first');
         this.last     = this.links_container.down('.last');
         this.forward  = this.links_container.down('.forward');
         this.back     = this.links_container.down('.back');
         this.textElem = this.links_container.down('.text');
-        
+
         this.first.observe  ('click', this.getFirstPage.bind(this));
         this.last.observe   ('click', this.getLastPage.bind(this));
         this.back.observe   ('click', this.getPrevPage.bind(this));
         this.forward.observe('click', this.getNextPage.bind(this));
     }
-    
-    return {        
+
+    return {
         destroy: function() {
             this.first.stopObserving();
             this.last.stopObserving();
@@ -64,18 +64,18 @@ Object.extend(GvaScript.Paginator.prototype, function() {
                 method               : 'post',  // POST so we get dispatched to *_PROCESS_FORM
                 parameters           : $H({}),
                 onSuccess            : Prototype.emptyFunction,
-                
+
                 lazy                 : false,   // false: load first page with Paginator initialization
-                                                // true: donot load automatically, loadContent would 
+                                                // true: donot load automatically, loadContent would
                                                 // have to be called explicity
                 timeoutAjax          : 15,
                 errorMsg             : "Problème de connexion. Réessayer et si le problème persiste, contacter un administrateur."
             };
             this.options = Object.extend(defaults, options || {});
             this.options.errorMsg = "<h3 style='color: #183E6C'>" + this.options.errorMsg + "</h3>";
-            
-            this.links_container = $(this.options.links_container); 
-            this.list_container  = $(this.options.list_container); 
+
+            this.links_container = $(this.options.links_container);
+            this.list_container  = $(this.options.list_container);
             this.url             = url;
 
             // initialization of flags
@@ -95,10 +95,10 @@ Object.extend(GvaScript.Paginator.prototype, function() {
             this.links_container.addClassName(bcss+'-widget');
             this.links_container.store('widget', this);
 
-            // load content by XHR  
+            // load content by XHR
             if(!this.options.lazy) this.loadContent();
         },
-        
+
         hasPrevious: function() {
             return this.index != 1;
         },
@@ -114,10 +114,10 @@ Object.extend(GvaScript.Paginator.prototype, function() {
                 this.loadContent();
                 return true;
             }
-            else 
+            else
             return false;
         },
-        
+
         /* Get the prev set of records from the current url */
         getPrevPage: function() {
             if(this._executing == false && this.hasPrevious()) {
@@ -125,7 +125,7 @@ Object.extend(GvaScript.Paginator.prototype, function() {
                 this.loadContent();
                 return true;
             }
-            else 
+            else
             return false;
         },
 
@@ -141,7 +141,7 @@ Object.extend(GvaScript.Paginator.prototype, function() {
 
         getFirstPage: function() {
             if(this._executing == false && this.hasPrevious()) {
-                this.index = 1; 
+                this.index = 1;
                 this.loadContent();
                 return true;
             }
@@ -149,7 +149,7 @@ Object.extend(GvaScript.Paginator.prototype, function() {
             return false;
         },
 
-        // Core function of the pagination object. 
+        // Core function of the pagination object.
         // Get records from url that are in the specified range
         loadContent: function() {
             if(this._executing == true) return; // still handling a previous request
@@ -158,15 +158,15 @@ Object.extend(GvaScript.Paginator.prototype, function() {
             // Add STEP and INDEX as url parameters
             var url = this.url;
             this.options.parameters.update({
-                STEP: this.options.step, 
+                STEP: this.options.step,
                 INDEX: this.index,
                 RESET: this.options.reset
             });
-            
+
             this.links_container.hide(); // hide 'em. (one click at a time)
             this.list_container.update(new Element('div', {'class': bcss+'-loading'}));
 
-            new Ajax.Request(url, { 
+            new Ajax.Request(url, {
                 evalJSON: 'force',  // force evaluation of response into responseJSON
                 method: this.options.method,
                 parameters: this.options.parameters,
@@ -184,15 +184,15 @@ Object.extend(GvaScript.Paginator.prototype, function() {
                 }.bind(this),
                 onSuccess: function(req) {
                     this._executing = false;
-                    
+
                     var answer = req.responseJSON;
                     if(answer) {
                         var nb_displayed_records = this.options.onSuccess(answer);
                         this.total     = answer.total; // total number of records
 
                         this.end_index = Math.min(this.total, this.index+nb_displayed_records-1); // end index of records on current page
-                    
-                        this.textElem.innerHTML = (this.total > 0)?  
+
+                        this.textElem.innerHTML = (this.total > 0)?
                             this.index + " &agrave; " + this.end_index + " de " + this.total: '0';
                         _toggleNavigatorsVisibility.apply(this);
                     }
