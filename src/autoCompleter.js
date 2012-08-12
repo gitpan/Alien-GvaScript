@@ -54,7 +54,9 @@ GvaScript.AutoCompleter = function(datasource, options) {
                                   // datasource is a URL)
     http_method      : 'get',     // method for Ajax requests
     dependentFields  : {},
-    deltaTime_tolerance : 50      // added msec. for imprecisions in setTimeout
+    deltaTime_tolerance : 50,      // added msec. for imprecisions in setTimeout
+    ignorePrefix : false,
+    caseSensitive: false
 
   };
 
@@ -93,7 +95,7 @@ GvaScript.AutoCompleter = function(datasource, options) {
   // focus() event; then a second set of keymap rules is pushed/popped
   // whenever the choice list is visible
   var basicHandler = this._keyDownHandler.bindAsEventListener(this);
-  var detectedKeys = /^(BACKSPACE|DELETE|KP_\d|.)$/;
+  var detectedKeys = /^(BACKSPACE|DELETE|KP_.*|.)$/;
                    // catch any single char, plus some editing keys
   var basicMap     = { DOWN: this._ArrowDownHandler.bindAsEventListener(this),
                        REGEX: [[null, detectedKeys, basicHandler]] };
@@ -259,7 +261,18 @@ GvaScript.AutoCompleter.prototype = {
 
     Element.addClassName(inputElement, this.classes.loading);
 
+    // encode value to complete 
+    val_to_complete = val_to_complete.split("").map(function (c) {
+      if (c.match(/[@\+\/]/)) {
+        return encodeURIComponent(c);
+      }
+      else {
+        return escape(c);
+      }
+    }).join("");
+    
     var complete_url = this._datasource + val_to_complete;
+
     this._runningAjax[inputElement.name] = new Ajax.Request(
       complete_url,
       {asynchronous: true,
@@ -329,7 +342,13 @@ GvaScript.AutoCompleter.prototype = {
       if (val_to_complete) {
         this._idx_to_hilite = (val_to_complete == ''? 0 : -1);
         $A(this._datasource).each(function(choice, index) {
-          if(choice.toLowerCase().startsWith(val_to_complete.toLowerCase())) {
+          switch(typeof choice) {
+            case "object" : value = choice[this.options.valueField]; break;
+            case "number" : value = choice.toString(10); break;
+            case "string" : value = choice; break;
+            default: throw new Error("unexpected type of value");
+          }
+          if(value.toLowerCase().startsWith(val_to_complete.toLowerCase())) {
             this._idx_to_hilite = index;
             throw $break;
           }

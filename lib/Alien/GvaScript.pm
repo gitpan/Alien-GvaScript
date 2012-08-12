@@ -5,7 +5,7 @@ use warnings;
 use File::Copy qw(copy);
 use File::Path qw(mkpath);
 
-our $VERSION = '1.22';
+our $VERSION = '1.40';
 
 sub path {
   (my $path = __FILE__) =~ s[\.pm$][/lib];
@@ -36,6 +36,7 @@ sub install {
 
 __END__
 
+=encoding ISO8859-1
 
 =head1 NAME
 

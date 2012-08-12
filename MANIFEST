@@ -123,3 +123,4 @@ test/unit/protoExtensions.html
 test/unit/resources/_grid_result.json
 test/unit/toc.html
 test/unittest.js
+META.json

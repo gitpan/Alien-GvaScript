@@ -28,6 +28,12 @@ Object.extend(GvaScript.Grid.prototype, function() {
             default: return '';
         }
     }
+    function _compileTitle(column) {
+        switch (typeof column.title) {
+            case 'string': return 'title= '+'"'+column.title+'"';
+            default: return '';
+        }
+    }        
     function _evalCondition(column, grid) {
         if(typeof column.condition == 'undefined') return true;
         else
@@ -218,7 +224,7 @@ Object.extend(GvaScript.Grid.prototype, function() {
                         '<th class="grid-marker">&nbsp;</th>' +
                         (this.columns.collect(function(e) {
                             if(_evalCondition(e, this))
-                            return '<th class="grid-header'+_compileCss(e)+'"'+_compileWidth(e)+'>'+e.label+'</th>'
+                            return '<th class="grid-header'+_compileCss(e)+'"'+_compileWidth(e)+_compileTitle(e)+'>'+e.label+'</th>'
                             else return '';
                         }, this).join('')) +
                     '</tr></thead>' +

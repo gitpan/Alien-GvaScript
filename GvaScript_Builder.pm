@@ -61,8 +61,25 @@ sub generate_js { # concatenates sources below into "GvaScript.js"
  *--------------------------------------------------------------------------*/
 
 var GvaScript = {
-  Version: '$Alien::GvaScript::VERSION'
+  Version: '$Alien::GvaScript::VERSION',
+  REQUIRED_PROTOTYPE: '1.7',
+  load: function() {
+    function convertVersionString(versionString) {
+      var v = versionString.replace(/_.*|\\./g, '');
+      v = parseInt(v + '0'.times(4-v.length));
+      return versionString.indexOf('_') > -1 ? v-1 : v;
+    }
+    if((typeof Prototype=='undefined') ||
+       (typeof Element == 'undefined') ||
+       (typeof Element.Methods=='undefined') ||
+       (convertVersionString(Prototype.Version) <
+        convertVersionString(GvaScript.REQUIRED_PROTOTYPE)))
+       throw("GvaScript requires the Prototype JavaScript framework >= " +
+        GvaScript.REQUIRED_PROTOTYPE);
+  }
 };
+
+GvaScript.load();
 __EOJS__
 
   foreach my $sourcefile (@sources) {

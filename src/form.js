@@ -157,7 +157,7 @@ GvaScript.Form.Methods = {
     }
 
     function fill_from_tree(form, field_prefix, tree, is_init)  {
-      if (form instanceof String) form = $(form);
+      if (Object.isString(form)) form = $(form);
 
       for (var key in tree) {
         if (!tree.hasOwnProperty(key)) continue;
@@ -174,12 +174,22 @@ GvaScript.Form.Methods = {
           case "number":
               var elem = form[new_prefix];
               if (elem)
-              _fill_from_value(form, elem, val, is_init);
+                _fill_from_value(form, elem, val, is_init);
               break;
 
           case "object":
-              if (val instanceof Array)
-                _fill_from_array(form, new_prefix, val, is_init);
+              if (val instanceof Array) {
+                var elem = form[new_prefix];
+                // value is an array but to be filled
+                // in one form element =>
+                // join array into one value using multival separator
+                if (elem)
+                  _fill_from_value(
+                    form, elem, val.join(GvaScript.Forms.multival_sep), is_init
+                  );
+                else
+                  _fill_from_array(form, new_prefix, val, is_init);
+              }
               else
                 this.fill_from_tree(form, new_prefix, val, is_init);
               break;
@@ -195,7 +205,7 @@ GvaScript.Form.Methods = {
 
   autofocus: function(container) {
 
-    if (container instanceof String) 
+    if (Object.isString(container)) 
       container = document.getElementById(container);
 
     // replace prototype's down selector
@@ -558,6 +568,7 @@ GvaScript.Form.Responders = {
 Object.extend(GvaScript.Form.Responders, Enumerable);
 
 GvaScript.Forms = {
+    multival_sep: '\n', // separator used to join array into one value
     forms: $A(),
 
     register: function(form) {

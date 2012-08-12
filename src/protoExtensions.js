@@ -1,8 +1,6 @@
 //-----------------------------------------------------
 // Some extensions to the prototype javascript framework
 //-----------------------------------------------------
-if (typeof Prototype == 'undefined') throw 'Required Prototype library is not loaded.';
-if (Prototype.Version != '1.6.1')    throw 'Prototype v 1.6.1 is required.';
 
 // fire value:change event when setValue method
 // is used to change the value of a Form Element
@@ -344,6 +342,13 @@ String.prototype.split = function (separator, limit) {
 // wrap in an anonymous function to avoid any variable conflict
 (function() {
   var rules = { };
+  var exprSplit = function(expression) {
+    var expressions = [];
+    expression.scan(/(([\w#:.~>+()\s-]+|\*|\[.*?\])+)\s*(,|$)/, function(m) {
+      expressions.push(m[1].strip());
+    });
+    return expressions;
+  }
   var eventManager = function(o_id, event) {
     // IE sometimes fires some events
     // while reloading (after unregister)
@@ -357,7 +362,7 @@ String.prototype.split = function (separator, limit) {
         for (var selector in rules[o_id][eventType]) {
           if (_match = matches(rules[o_id][eventType][selector]._selector, element)) {
             for (var i=0, handlers=rules[o_id][eventType][selector], l=handlers.length; i<l; ++i) {
-              handlers[i].call(element, Object.extend(event, { _target: element, _match: _match.expression }));
+              handlers[i].call(element, Object.extend(event, { _target: element, _match: _match }));
             }
           }
         }
@@ -366,7 +371,7 @@ String.prototype.split = function (separator, limit) {
   }
   var matches = function(selectors, element) {
     for (var i=0, l=selectors.length; i<l; ++i) {
-      if (selectors[i].match(element)) return selectors[i];
+      if (Prototype.Selector.match(element, selectors[i])) return selectors[i];
     }
     return undefined;
   }
@@ -399,7 +404,7 @@ String.prototype.split = function (separator, limit) {
 
     var _selector = [ ], expr = selector.strip();
     // instantiate Selector's
-    Selector.split(selector).each(function(s) { _selector.push(new Selector(s)) })
+    exprSplit(selector).each(function(s) { _selector.push(s) })
 
     // store instantiated Selector for faster matching
     if (!rules[observer_id][eventName][expr]) {
