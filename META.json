@@ -39,7 +39,7 @@
    "provides" : {
       "Alien::GvaScript" : {
          "file" : "lib/Alien/GvaScript.pm",
-         "version" : "1.40"
+         "version" : "1.41"
       }
    },
    "release_status" : "stable",
@@ -48,5 +48,5 @@
          "http://dev.perl.org/licenses/"
       ]
    },
-   "version" : "1.40"
+   "version" : "1.41"
 }

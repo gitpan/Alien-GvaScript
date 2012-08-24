@@ -50,9 +50,9 @@ sub generate_js { # concatenates sources below into "GvaScript.js"
  * GvaScript - Javascript framework born in Geneva.
  *
  *  Authors: Laurent Dami            <laurent.d...\@etat.ge.ch>
- *           Mona Remlawi            <mona.rem....\@etat.ge.ch>
+ *           Mona Remlawi
  *           Jean-Christophe Durand
- *           Sébastien Cuendet
+ *           Sebastien Cuendet
 
  *  LICENSE
  *  This library is free software, you can redistribute it and/or modify
@@ -172,8 +172,8 @@ sub view_pod {
   return <<__EOHTML__
 <html>
 <head>
-  <script src="../../lib/prototype.js"></script>
-  <script src="../../lib/GvaScript.js"></script>
+  <script src="../../lib/Alien/GvaScript/lib/prototype.js"></script>
+  <script src="../../lib/Alien/GvaScript/lib/GvaScript.js"></script>
   <link href="GvaScript_doc.css" rel="stylesheet" type="text/css">
   <script>
     document.observe('dom:loaded', function() { new GvaScript.TreeNavigator('TN_tree'); });

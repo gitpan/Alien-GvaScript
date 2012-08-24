@@ -16,7 +16,7 @@ name: Alien-GvaScript
 provides:
   Alien::GvaScript:
     file: lib/Alien/GvaScript.pm
-    version: 1.40
+    version: 1.41
 recommends:
   Pod::POM: 0
   Pod::POM::View: 0
@@ -26,4 +26,4 @@ requires:
   File::Path: 0
 resources:
   license: http://dev.perl.org/licenses/
-version: 1.40
+version: 1.41
