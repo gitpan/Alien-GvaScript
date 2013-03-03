@@ -1,7 +1,5 @@
 =encoding ISO8859-1
 
-=encoding ISO8859-1
-
 =head1 NAME
 
 Class GvaScript.Form - Wrapper around HTML Forms
@@ -320,7 +318,7 @@ C<newValue> is set for the C<change> and the C<init> events.
 
 C<oldValue> is set for the C<change>.
 
-B<NOTE:> Form.Element.setValue method is wrapped in GvaSript?.ProtoExtensions module to programatically fire the blur event after setting the value on the input, and hence firing the change handler if any.
+B<NOTE:> Form.Element.setValue method is wrapped in GvaScript.ProtoExtensions module to programatically fire the blur event after setting the value on the input, and hence firing the change handler if any.
 
 [I<This method can be called either as an instance method or as a generic method. If calling as a generic, pass the form HTMLElement/id in as the first argument.>]
 

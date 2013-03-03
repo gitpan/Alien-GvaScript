@@ -1,5 +1,8 @@
 Revision history for Alien-GvaScript
 
+1.42 03.03.2013
+  - fixed Pod bug in Form.pod (caused test failure with Pod::Simple v3.26
+
 1.41 20.08.2011
   - html doc generation : fix path to scripts
   - removed accented chars in .js files (avoid probl. with application/script

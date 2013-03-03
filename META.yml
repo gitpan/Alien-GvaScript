@@ -5,9 +5,9 @@ author:
 build_requires:
   Test::More: 0
 configure_requires:
-  Module::Build: 0.38
+  Module::Build: 0.40
 dynamic_config: 1
-generated_by: 'Module::Build version 0.38, CPAN::Meta::Converter version 2.112150'
+generated_by: 'Module::Build version 0.4003, CPAN::Meta::Converter version 2.120921'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -16,7 +16,7 @@ name: Alien-GvaScript
 provides:
   Alien::GvaScript:
     file: lib/Alien/GvaScript.pm
-    version: 1.41
+    version: 1.42
 recommends:
   Pod::POM: 0
   Pod::POM::View: 0
@@ -26,4 +26,5 @@ requires:
   File::Path: 0
 resources:
   license: http://dev.perl.org/licenses/
-version: 1.41
+  repository: https://github.com/damil/Alien-GvaScript
+version: 1.42

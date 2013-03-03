@@ -20,6 +20,11 @@ my $builder = GvaScript_Builder->new(
       'Test::More'           => 0,
     },
     add_to_cleanup      => [ 'Alien-GvaScript-*' ],
+    meta_merge => {
+      resources => {
+        repository => 'https://github.com/damil/Alien-GvaScript',
+       }
+     },
 );
 
 
