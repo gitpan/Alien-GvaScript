@@ -1,5 +1,5 @@
 ---
-abstract: Gva extension to the prototype javascript framework
+abstract: 'Gva extension to the prototype javascript framework'
 author:
   - 'Laurent Dami <laurent.dami@justice.ge.ch>'
 build_requires:
@@ -7,7 +7,7 @@ build_requires:
 configure_requires:
   Module::Build: 0.40
 dynamic_config: 1
-generated_by: 'Module::Build version 0.4003, CPAN::Meta::Converter version 2.120921'
+generated_by: 'Module::Build version 0.4004, CPAN::Meta::Converter version 2.120921'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -16,7 +16,7 @@ name: Alien-GvaScript
 provides:
   Alien::GvaScript:
     file: lib/Alien/GvaScript.pm
-    version: 1.42
+    version: 1.43
 recommends:
   Pod::POM: 0
   Pod::POM::View: 0
@@ -27,4 +27,4 @@ requires:
 resources:
   license: http://dev.perl.org/licenses/
   repository: https://github.com/damil/Alien-GvaScript
-version: 1.42
+version: 1.43

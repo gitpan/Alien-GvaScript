@@ -1,5 +1,10 @@
 Revision history for Alien-GvaScript
 
+1.43 27.09.2013
+  - autoCompleter: choiceList scrolls so that the current value is visible
+  - autoCompleter: ping event updates the current value
+  - ajax tests use port 8085 instead of 8081
+
 1.42 03.03.2013
   - fixed Pod bug in Form.pod (caused test failure with Pod::Simple v3.26
 

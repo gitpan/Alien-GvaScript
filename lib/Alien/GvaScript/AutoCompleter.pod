@@ -370,7 +370,7 @@ to which you can bind your handling code
 =head2 detach(inputField)
 
 Permanently detaches the input field from the autocompleter object
-(i.e. remove C<onblur> and C<onkeypress> handlers
+(i.e. removes C<onblur> and C<onkeypress> handlers
 that were previously set by the first invocation of the 
 C<autocomplete> method).
 

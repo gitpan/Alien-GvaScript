@@ -28,14 +28,9 @@ C<RETURN> (for selecting) or C<ESCAPE> (for cancelling).
 
 
 
-
 =head1 CONSTRUCTOR
 
   var choiceList = new GvaScript.ChoiceList(choices, options);
-
-=head2 DESTRUCTOR
-    
-    choiceList.destroy();
 
 =head2 Choices
 

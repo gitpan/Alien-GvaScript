@@ -118,7 +118,7 @@ GvaScript.ChoiceList.prototype = {
 
 
     // highlight the initial value or the first choice
-    this._highlightChoiceNum(this.currentHighlightedIndex || 0, false);
+    this._highlightChoiceNum(this.currentHighlightedIndex || 0, true);
   },
 
   updateContainer: function(container, list) {
@@ -142,8 +142,9 @@ GvaScript.ChoiceList.prototype = {
   },
 
   choiceElementHTML: function(label, id) {
-    return "<" + this.options.choiceItemTagName + " class='" + this.classes.choiceItem +  "' id='" + id + "'>"
-           + label + "</" + this.options.choiceItemTagName + ">";
+    return "<" + this.options.choiceItemTagName + " class='" 
+               + this.classes.choiceItem +  "' id='" + id + "'>"
+               + label + "</" + this.options.choiceItemTagName + ">";
   },
 
   fireEvent: GvaScript.fireEvent, // must be copied here for binding "this"

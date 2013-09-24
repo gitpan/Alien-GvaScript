@@ -910,6 +910,11 @@ GvaScript.AutoCompleter.prototype = {
     if (value !== null) {
       this._setValue(value)
       this._removeDropdownDiv();
+      
+      // ADDED LEMOINEJ 26.09.13
+      this._timeLastCheck = this._timeLastKeyDown = 0;      
+      this._checkNewValue();
+
       if (!this.options.multivalued) {
         this.inputElement.select();
       }

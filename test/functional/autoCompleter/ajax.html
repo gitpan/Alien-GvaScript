@@ -8,7 +8,7 @@
 
     <script>
       var ac, ac_strict, ac_noblank;
-      var url = "http://localhost:8081/ac/country/";
+      var url = "http://localhost:8085/ac/country/";
 
       function setup() {  
         ac = new GvaScript.AutoCompleter(url, {
@@ -62,7 +62,7 @@
 
 <p>
 This autocompleter example is bound to a complete list of countries
-served by the perl HTTP service at http://localhost:8081/ac/country/ that responds 
+served by the perl HTTP service at http://localhost:8085/ac/country/ that responds 
 by an array: <tt>[{value: ..., label:  ..., code: ...}, ... ]</tt>
 </p>
 

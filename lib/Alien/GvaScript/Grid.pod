@@ -111,13 +111,14 @@ navigate by recordCustomButtons
 
 start/end of current page
 CustomButtons
+
 =item C<RETURN> 
 
-fires onPing event handler
+fires C<onPing> event handler
 
 =item C<ESC> 
 
-fires onCancel event handler
+fires C<onCancel> event handler
 
 =item C<PAGEUP / LEFT> and C<PAGEDOWN / RIGHT> 
 
