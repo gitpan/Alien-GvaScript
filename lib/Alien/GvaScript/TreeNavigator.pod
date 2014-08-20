@@ -2,7 +2,7 @@
 
 =head1 NAME
 
-TreeNavigator - Navigation in a tree structure
+Alien::GvaScript::TreeNavigator - Navigation in a tree structure
 
 =head1 SYNOPSIS
 
@@ -41,17 +41,6 @@ identify nodes.  Nodes can be browsed, closed or
 opened. All operations take place directly within the
 tree, not in a separate panel. 
 
-To read further chapters of this documentation, use
-the arrow keys or the C<TAB>
-key. To see the whole page at once (for example for
-printing), press the C<S<Ctrl-keypad *>> key.
-
-=head2 DESTRUCTOR
-
-  mytreenavigator.destroy();
-
-This method will remove all handlers assigned to tree navigator.
-Call this method when the tree navigator element is removed from the DOM.
 
 =head2 Tree structure
 
@@ -462,6 +451,13 @@ displayed
 
 =back
 
+
+=head3 destroy
+
+  mytreenavigator.destroy();
+
+This method will remove all handlers assigned to tree navigator.
+Call this method when the tree navigator element is removed from the DOM.
 
 
 =head3 Node manipulation

@@ -2,7 +2,7 @@
 
 =head1 NAME
 
-GvaScript::Intro - A javascript framework born in Geneva.
+Alien::GvaScript::Intro - A javascript framework born in Geneva.
 
 =head1 SYNOPSIS
 

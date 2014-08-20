@@ -2,7 +2,7 @@
 
 =head1 NAME
 
-Class GvaScript.Form - Wrapper around HTML Forms
+Alien::GvaScript::Form - Wrapper around HTML Forms
 
 =head1 SYNOPSIS
 
@@ -88,17 +88,17 @@ some differences both in syntax and in semantics.
 
 =over 12
 
-=item * form_id
+=item form_id
 
 id of the HTML form to extend
 
-=item * options
+=item options
 
 hash of optional properties that would define the behavior of the form
 
 =over 
 
-=item * datatree
+=item datatree
 
 tree represention of the initial form data. 
 
@@ -113,7 +113,7 @@ Ex:
     ] 
   }
 
-=item * dataprefix
+=item dataprefix
 
 sometimes it's helpful to prefix the html input names to give them 'context'.
 
@@ -121,17 +121,17 @@ Ex: C<doll.name> C<doll.friends.0.name>.
 
 in this example, the dataprefix should be set to 'doll'
 
-=item * registry
+=item registry
 
 a list of arrays C<[expression, eventName, handler]>.
 
 each item in the array would be passed over to the L</notify> method.
 
-=item * onInit
+=item onInit
 
 function to be called after the successful initialization of the GvaScript.Form instance.
 
-=item * onRepeatBlockRemove
+=item onRepeatBlockRemove
 
 function to be called after a block in a repeated section is removed
 
@@ -142,7 +142,7 @@ Signature
     // arg: array containing repeat name as first element and repeat path as second
   }
 
-=item * onRepeatBlockAdd
+=item onRepeatBlockAdd
 
 function to be called after a block in a repeated section is added
 
@@ -153,7 +153,7 @@ Signature
     // arg: array containing repeat name as first element and repeat path as second
   }
 
-=item * onChange
+=item onChange
 
 function to be called when any of the form's elements has changed or onAdd/onRemove of a repeatable section.
 
@@ -166,7 +166,7 @@ Signature
     //        called from the Repeat module
   }
 
-=item * onBeforeSubmit
+=item onBeforeSubmit
 
 function to be called directly before the form submits.
 
@@ -177,7 +177,7 @@ Signature
     // return false if you want to stop the form from submitting
   }
 
-=item * onSubmit
+=item onSubmit
 
 function to be called when the form is submit.
 
@@ -188,17 +188,17 @@ Signature
     // use to fire 'onAfterSubmit', 'onSubmitFailure' or 'onDataValidationError'
   }
 
-=item * onBeforeDestroy
+=item onBeforeDestroy
 
 function to be called right before the form instance calls the destroy method.
 
 Callback useful for doing some inhouse cleaning before the form gets removed from the DOM.
 
-=item * on[XYZ]
+=item on[XYZ]
 
 Event handlers for custom form events. The form instance should fire these events so as corresponding handler can be fired.
 
-=item * actionsbar
+=item actionsbar
 
 initializes and instance of L<Alien::GvaScript::ActionsBar>.
 

@@ -17,7 +17,7 @@
 <body>
 <div id='TN_tree'>
   <div class="TN_node">
-   <h1 class="TN_label">KeyMap</h1>
+   <h1 class="TN_label">Alien::GvaScript::KeyMap</h1>
    <div class="TN_content">
      <p><em>Manage maps of handlers for key events
 </em></p>
@@ -30,10 +30,6 @@
 </div>
 <div class="TN_leaf">
   <a class="TN_label" href="#SYNOPSIS">SYNOPSIS</a>
-  <div class="TN_content"></div>
-</div>
-<div class="TN_leaf">
-  <a class="TN_label" href="#DESTRUCTOR">DESTRUCTOR</a>
   <div class="TN_content"></div>
 </div>
 <div class="TN_leaf">
@@ -86,6 +82,10 @@
   <a class="TN_label" href="#Prefix"><code>Prefix</code></a>
   <div class="TN_content"></div>
 </div>
+<div class="TN_leaf">
+  <a class="TN_label" href="#destroy"><code>destroy</code></a>
+  <div class="TN_content"></div>
+</div>
 </div>
 </div>
 
@@ -97,7 +97,7 @@
   <div class="TN_node" id="NAME">
     <h2 class="TN_label">NAME</h2>
     <div class="TN_content">
-      <p>KeyMap - Manage maps of handlers for key events</p>
+      <p>Alien::GvaScript::KeyMap - Manage maps of handlers for key events</p>
 
     </div>
   </div>
@@ -139,17 +139,6 @@
   // back to previous handling state
   aKeyMap.rules.pop();</pre>
 
-
-    </div>
-  </div>
-  <div class="TN_node" id="DESTRUCTOR">
-    <h2 class="TN_label">DESTRUCTOR</h2>
-    <div class="TN_content">
-      <pre>  aKeyMap.destroy();</pre>
-
-<p>This method will remove the keymap handler attached the element/document.
-Call this method when the concerned element is removed from the DOM
-or to deactivate the keymap handler.</p>
 
     </div>
   </div>
@@ -442,6 +431,17 @@ set of rules : the next key event will be passed to these rules,
 and after that the main rules resumes normal behaviour.
 Hence you can attach handlers to sequences of keys, like for
 example in Emacs.</p>
+
+    </div>
+  </div>
+  <div class="TN_node" id="destroy">
+    <h3 class="TN_label"><code>destroy</code></h3>
+    <div class="TN_content">
+      <pre>  aKeyMap.destroy();</pre>
+
+<p>This method will remove the keymap handler attached the element/document.
+Call this method when the concerned element is removed from the DOM
+or to deactivate the keymap handler.</p>
 
     </div>
   </div>

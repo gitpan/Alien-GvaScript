@@ -2,7 +2,7 @@
 
 =head1 NAME
 
-GvaScript.Repeat - Support for repeated sections
+Alien::GvaScript::Repeat - Support for repeated sections
 
 =head1 SYNOPSIS
 

@@ -2,7 +2,7 @@
 
 =head1 NAME
 
-GvaScript.ChoiceList - Dropdown list of choices with navigation
+Alien::GvaScript::ChoiceList - Dropdown list of choices with navigation
 
 =head1 SYNOPSIS
 

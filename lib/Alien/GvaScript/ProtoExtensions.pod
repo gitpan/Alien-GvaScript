@@ -2,7 +2,7 @@
 
 =head1 NAME
 
-GvaScript.protoExtensions - Extensions to prototype.js
+Alien::GvaScript::ProtoExtensions - Extensions to prototype.js
 
 =head1 SYNOPSIS
 
@@ -216,7 +216,9 @@ with message C<msg>.
 
   CSSPREFIX ();
 
-Returns value of C<CSS_PREFIX> global variable if found. If not, default to 'gva'.
+Returns value of C<CSS_PREFIX> global variable if found. If not,
+default to 'gva'.
 
-This value is used to prefix css classnames of html elements that are derived in some GvaScript classes.
+This value is used to prefix css classnames of html elements that are
+derived in some GvaScript classes.
 

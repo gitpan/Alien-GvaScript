@@ -2,7 +2,7 @@
 
 =head1 NAME
 
-GvaScript.Grid - ChoiceList based Grid with Pagination
+Alien::GvaScript::Grid - ChoiceList based Grid with Pagination
 
 =head1 SYNOPSIS
 
@@ -40,29 +40,6 @@ GvaScript.Grid - ChoiceList based Grid with Pagination
         onCancel: function() {alert('ESC pressed')}
     });
 
-=head1 DEPENDENCIES
-
-This class depends on the following GvaScript classes:
-
-=over 12
-
-=item GvaScript.ChoiceList
-
-=item GvaScript.Paginator
-
-=item GvaScript.CustomButtons
-
-=back
-
-=head1 DESTRUCTOR 
-
-  my_grid.destroy();
-
-This method will unregister the Grid in the GvaScript.Grids namespace and 
-will iteratively call the destructor on all the grid's depedencies
-this removing all handlers attached.
-Call this method when the grid is removed
-from the DOM.
 
 =head1 DESCRIPTION
 
@@ -353,6 +330,18 @@ This method is equivalent to C<grid.clearResult(msg)> and C<grid.clearToolbar()>
 This method renders the action buttons based on the grids actions. 
 NOTE that the actions conditions will be re-evaluated.
 
+
+=head2 destroy
+
+  my_grid.destroy();
+
+This method will unregister the Grid in the GvaScript.Grids namespace and 
+will iteratively call the destructor on all the grid's depedencies
+this removing all handlers attached.
+Call this method when the grid is removed
+from the DOM.
+
+
 =head1 EVENTS
 
 =head2 onShow
@@ -524,3 +513,17 @@ This event is triggered when the list is empty.
   .dmweb-grid td.grid-cell.center {text-align:center;float:none;}
   .dmweb-grid td.grid-cell.right {text-align:right;float:none;}
   .dmweb-grid td.grid-cell.red {color:red;}
+
+=head1 DEPENDENCIES
+
+This class depends on the following GvaScript classes:
+
+=over 12
+
+=item GvaScript.ChoiceList
+
+=item GvaScript.Paginator
+
+=item GvaScript.CustomButtons
+
+=back

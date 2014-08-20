@@ -2,7 +2,7 @@
 
 =head1 NAME
 
-GvaScript.Paginator - API for data pagination
+Alien::GvaScript::Paginator - API for data pagination
 
 =head1 SYNOPSIS
 
@@ -28,14 +28,6 @@ Navigation links are used for an on demand I<page flipping>.
 Data will be requested using an HTTP call to a provided URL.
 Data Index and Size are decided using C<INDEX> and C<STEP> parameters respectively. 
 It is up to you to make use of these parameters to decide on the items to display.
-
-=head2 DESTRUCTOR
-
-  mypaginator.destroy();
-
-This method will remove all handlers assigned to pagination buttons.
-Call this method when the paginator element is removed from the DOM.
-
 
 =head2 Pagination Parameters
 
@@ -222,3 +214,12 @@ Core method that initializes the AJAX HTTP Request to retrieve data and calls th
 to dipplay the result.
 
 =back
+
+
+=head3 destroy
+
+  mypaginator.destroy();
+
+This method will remove all handlers assigned to pagination buttons.
+Call this method when the paginator element is removed from the DOM.
+

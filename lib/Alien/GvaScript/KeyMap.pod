@@ -2,7 +2,7 @@
 
 =head1 NAME
 
-KeyMap - Manage maps of handlers for key events 
+Alien::GvaScript::KeyMap - Manage maps of handlers for key events 
 
 =head1 SYNOPSIS
 
@@ -41,14 +41,6 @@ KeyMap - Manage maps of handlers for key events
   // back to previous handling state
   aKeyMap.rules.pop();
 
-
-=head1 DESTRUCTOR 
-
-  aKeyMap.destroy();
-
-This method will remove the keymap handler attached the element/document.
-Call this method when the concerned element is removed from the DOM
-or to deactivate the keymap handler.
 
 =head1 DESCRIPTION
 
@@ -348,4 +340,12 @@ set of rules : the next key event will be passed to these rules,
 and after that the main rules resumes normal behaviour.
 Hence you can attach handlers to sequences of keys, like for
 example in Emacs.
+
+=head2 C<destroy>
+
+  aKeyMap.destroy();
+
+This method will remove the keymap handler attached the element/document.
+Call this method when the concerned element is removed from the DOM
+or to deactivate the keymap handler.
 

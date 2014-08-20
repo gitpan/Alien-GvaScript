@@ -2,7 +2,7 @@
 
 =head1 NAME
 
-GvaScript.Autocompleter - autocompletion on form input fields
+Alien::GvaScript::Autocompleter - autocompletion on form input fields
 
 =head1 SYNOPSIS
 
@@ -61,12 +61,13 @@ suggestions from the datasource, and displays them in a dropdown list.
 
 The dropdown list can be navigated through arrow keys. Selecting a
 suggestion in the list is done either by a click, or by pressing the
-C<RETURN> key (this is handled by the L<choiceList> component of 
+C<RETURN> key (this is handled by the
+L<Alien::GvaScript::ChoiceList|choiceList> component of
 GvaScript). Then the value of that suggestion fills the input field
-value, dependent fields (if any) are updated, and the C<onLegalValue> 
+value, dependent fields (if any) are updated, and the C<onLegalValue>
 event is triggered.
 
-A number of Variations on this behaviour may be controlled by the options
+A number of variations on this behaviour may be controlled by the options
 described below.
 
 
